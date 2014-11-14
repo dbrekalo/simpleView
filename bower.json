@@ -1,0 +1,23 @@
+{
+  "name": "simpleView",
+  "version": "1.0.0",
+  "homepage": "https://github.com/dbrekalo/simpleView",
+  "authors": [
+    "Damir Brekalo <dbrekalo@gmail.com>"
+  ],
+  "description": "Javascript component boilerplate",
+  "main": "dist/simpleView.min.js",
+  "keywords": [
+    "simpleView",
+    "component",
+    "view"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
