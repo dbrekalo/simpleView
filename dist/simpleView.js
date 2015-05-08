@@ -14,18 +14,22 @@
 		this.el && (this.$el = $(this.el));
 
 		if (options) {
+
 			if (options.$el) {
 				this.$el =  options.$el;
 				delete options.$el;
-			} else if (options.el) {
+			}
+
+			if (options.el) {
 				this.$el =  $(options.el);
 				delete options.el;
 			}
+
 		}
 
 		this.$el && this.events && this.delegateEvents();
 
-		this.initialize && this.initialize(options);
+		this.initialize && this.initialize.apply(this, arguments);
 
 	};
 
@@ -55,7 +59,7 @@
 					eventName = temp[0] + self.ens,
 					eventSelector = $.trim(eventString.slice(temp[0].length));
 
-				self.$el.on(eventName, eventSelector, $.proxy(self[handler], self));
+				self.$el.on(eventName, eventSelector, $.proxy(typeof handler === 'function' ? handler : self[handler], self));
 
 			});
 
