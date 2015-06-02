@@ -81,13 +81,19 @@
 
 	view.extend = function(viewDefinitions){
 
-		var extendedView = function(){
-			view.apply(this, arguments);
+		var parent = this;
+
+		var extendedView = viewDefinitions.hasOwnProperty('constructor') ? viewDefinitions.constructor : function() {
+		    parent.apply(this, arguments);
 		};
 
-		$.extend(extendedView.prototype, view.prototype, viewDefinitions);
+		var Surrogate = function() { this.constructor = extendedView; };
+		Surrogate.prototype = parent.prototype;
+		extendedView.prototype = new Surrogate();
 
-		return extendedView;
+		$.extend(extendedView.prototype, viewDefinitions);
+
+		return $.extend(extendedView, parent);
 
 	};
 
