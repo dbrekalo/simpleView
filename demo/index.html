@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+    <head>
+
+        {{ include('snippets/pageMeta.html', {
+            "title": "Simple View",
+            "description": "Lightweight javascript view component boilerplate"
+        }) }}
+
+        {{ include('snippets/attireAssets.html') }}
+
+        <script src="dist/simpleView.bundle.js"></script>
+
+    </head>
+<body>
+
+    {{ include('sections/about.html') }}
+    {{ include('sections/examples.html') }}
+    {{ include('sections/installation.html') }}
+
+    {{ include('snippets/githubRibbon.html') }}
+    {{ include('snippets/attireFooter.html') }}
+
+</body>
+
+</html>

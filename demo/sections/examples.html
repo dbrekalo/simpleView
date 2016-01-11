@@ -1,0 +1,45 @@
+<section class="attireBlock mod1 testCase">
+    <div class="inner">
+
+        <h2 class="attireTitleType2">Examples</h2>
+
+        <p class="attireTextType2">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odit quo omnis sapiente iure a. Earum quod, soluta distinctio. Temporibus ducimus quis saepe ullam alias non repellat blanditiis consequatur eius odio.
+        </p>
+
+        <script>
+
+            var TestClass = SimpleView.extend({
+                events: {
+                    'one:click .attireTitleType2': function(e) {
+                        console.log($(e.target).text());
+                    },
+                    'click .attireTextType2': function(e) {
+                        console.log($(e.target).text());
+                    },
+                    'resize window': 'showSizeText',
+                    'one:keyup document': 'play'
+                },
+                play: function() {
+                    console.log(this.cid);
+                },
+                showSizeText: function() {
+                    this.$sizeText = this.$sizeText || $('<p>').addClass('attireTextType2').appendTo(this.$('.inner'));
+                    this.$sizeText.text('Current window size is ' + this.$window.outerWidth() + 'px.');
+                }
+            });
+
+            console.log(new TestClass({$el: '.testCase'}));
+
+            var TestClass2 = TestClass.extend({
+                play: function() {
+                    console.log(2, this.cid);
+                }
+            });
+
+            console.log(new TestClass2({$el: '.testCase'}));
+
+        </script>
+
+    </div>
+</section>

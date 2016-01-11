@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+    <head>
+
+        <meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<title>Simple View</title>
+<meta name="description" content="Lightweight javascript view component boilerplate">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link href='https://fonts.googleapis.com/css?family=Lato:400,300,700,900&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="https://rawgit.com/dbrekalo/attire/master/dist/css/build.min.css">
+<script src="https://rawgit.com/dbrekalo/attire/master/dist/js/build.min.js"></script>
+
+        <script src="dist/simpleView.bundle.js"></script>
+
+    </head>
+<body>
+
+    <section class="attireBlock">
+    <div class="inner">
+
+        <h1 data-nav-title="About" class="attireTitleType1">Simple view</h1>
+
+        <p class="attireTextType1">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Omnis ullam beatae laborum ab.
+            Dicta, soluta voluptates quasi expedita ut sint commodi doloremque perspiciatis voluptatem ipsa minus repellendus, officiis delectus aut.
+        </p>
+
+        <nav class="attireAuthor">
+    <a class="imageElement" href="https://github.com/dbrekalo">
+        <img src="https://s.gravatar.com/avatar/32754a476fb3db1c5a1f9ad80c65d89d?s=80" alt="Damir Brekalo">
+    </a>
+    <a class="name" href="https://github.com/dbrekalo">Damir Brekalo</a>
+    <p class="socialBox">
+        <a href="mailto:dbrekalo@gmail.com" class="iconMail" title="Contact me by email">Contact me by email</a>
+        <a href="https://github.com/dbrekalo" class="iconGithub" title="Find me on Github">Find me on Github</a>
+        <a href="https://twitter.com/damirbr" class="iconTwitter" title="Reach me on Twitter">Reach me on Twitter</a>
+    </p>
+</nav>
+
+        <p class="attireTextType2">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Omnis ullam beatae laborum ab.
+            Dicta, soluta voluptates quasi expedita ut sint commodi doloremque perspiciatis voluptatem ipsa minus repellendus, officiis delectus aut.
+        </p>
+
+    </div>
+</section>
+
+    <section class="attireBlock mod1 testCase">
+    <div class="inner">
+
+        <h2 class="attireTitleType2">Examples</h2>
+
+        <p class="attireTextType2">
+            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odit quo omnis sapiente iure a. Earum quod, soluta distinctio. Temporibus ducimus quis saepe ullam alias non repellat blanditiis consequatur eius odio.
+        </p>
+
+        <script>
+
+            var TestClass = SimpleView.extend({
+                events: {
+                    'one:click .attireTitleType2': function(e) {
+                        console.log($(e.target).text());
+                    },
+                    'click .attireTextType2': function(e) {
+                        console.log($(e.target).text());
+                    },
+                    'resize window': 'showSizeText',
+                    'one:keyup document': 'play'
+                },
+                play: function() {
+                    console.log(this.cid);
+                },
+                showSizeText: function() {
+                    this.$sizeText = this.$sizeText || $('<p>').addClass('attireTextType2').appendTo(this.$('.inner'));
+                    this.$sizeText.text('Current window size is ' + this.$window.outerWidth() + 'px.');
+                }
+            });
+
+            console.log(new TestClass({$el: '.testCase'}));
+
+            var TestClass2 = TestClass.extend({
+                play: function() {
+                    console.log(2, this.cid);
+                }
+            });
+
+            console.log(new TestClass2({$el: '.testCase'}));
+
+        </script>
+
+    </div>
+</section>
+
+    <section class="attireBlock">
+    <div class="inner">
+
+        <h2 class="attireTitleType2">Installation</h2>
+
+        <p class="attireTextType2">
+            For browser usage browse dist folder - if working with build tools go with src folder.
+            Download library files from <a href="https://github.com/dbrekalo/simpleView">github repo</a> or get them via bower (bower install simple-view)
+        </p>
+
+    </div>
+</section>
+
+
+    <a class="githubRibbon" href="https://github.com/dbrekalo/simpleView">
+    <img src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+</a>
+    <footer class="attireFooter">
+    <p>This page is built with <a href="http://dbrekalo.github.io/attire/">Attire</a>.</p>
+</footer>
+
+</body>
+
+</html>

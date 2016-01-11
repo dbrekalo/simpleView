@@ -1,11 +1,11 @@
 {
   "name": "simple-view",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "homepage": "https://github.com/dbrekalo/simpleView",
   "authors": [
     "Damir Brekalo <dbrekalo@gmail.com>"
   ],
-  "description": "Javascript component boilerplate",
+  "description": "Lightweight javascript view component boilerplate",
   "main": "dist/simpleView.min.js",
   "keywords": [
     "simpleView",
@@ -19,5 +19,9 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "jquery": "~2.2.0",
+    "type-factory": "~1.0.0"
+  }
 }

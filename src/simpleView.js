@@ -1,102 +1,104 @@
-;(function($){
+(function(root, factory) {
 
-	"use strict";
+    if (typeof define === 'function' && define.amd) {
+        define(['type-factory', 'jquery'], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory(require('type-factory'), require('jquery'));
+    } else {
+        root.SimpleView = factory(typeFactory, jQuery);
+    }
 
-	$.wk = $.wk || {};
+}(this, function(typeFactory, $) {
 
-	var instanceCounter = 0,
-		require = $.wk.repo && $.wk.repo.require;
+    var viewCounter = 0;
 
-	var view = function(options){
+    return typeFactory({
 
-		this.cid = 'view' + (++instanceCounter);
-		this.ens = '.' + this.cid;
-		this.el && (this.$el = $(this.el));
+        delegatedEvents: true,
 
-		if (options) {
+        constructor: function(options) {
 
-			if (options.$el) {
-				this.$el =  options.$el;
-				delete options.$el;
-			}
+            this.cid = 'view' + (++viewCounter);
 
-			if (options.el) {
-				this.$el =  $(options.el);
-				delete options.el;
-			}
+            if (options && options.$el) {
+                this.$el = options.$el instanceof $ ? options.$el : $(options.$el).eq(0);
+                delete options.$el;
+            }
 
-		}
+            this.events && this.$el && this.setupEvents();
+            this.initialize && this.initialize.apply(this, arguments);
 
-		this.$el && this.events && this.delegateEvents();
+        },
 
-		this.initialize && this.initialize.apply(this, arguments);
+        setupEvents: function() {
 
-	};
+            var eventNamespace = this.ens = this.ens || '.' + this.cid,
+                self = this,
+                specialSelectors = {
+                    'document': document,
+                    'window': window
+                };
 
-	$.extend(view.prototype, {
+            $.each(typeof this.events === 'function' ? this.events() : this.events, function(eventString, handler) {
 
-		$: function(selector){
+                var isOneEvent = eventString.indexOf('one:') === 0,
+                    splitEventString = (isOneEvent ? eventString.slice(4) : eventString).split(' '),
+                    eventName = splitEventString[0] + eventNamespace,
+                    eventSelector   = splitEventString.slice(1).join(' '),
+                    $el = self.$el;
 
-			return this.$el.find(selector);
+                if (specialSelectors[eventSelector]) {
+                    $el = self['$' + eventSelector] = self['$' + eventSelector] || $(specialSelectors[eventSelector]);
+                    eventSelector = undefined;
+                } else if (!self.delegatedEvents) {
+                    (self.elementsWithBoundEvents = self.elementsWithBoundEvents || []).push($el = $el.find(eventSelector));
+                    eventSelector = undefined;
+                }
 
-		},
+                $el[isOneEvent ? 'one' : 'on'](eventName, eventSelector, function() {
+                    (typeof handler === 'function' ? handler : self[handler]).apply(self, arguments);
+                });
 
-		close: function(){
+            });
 
-			this.beforeClose && this.beforeClose();
-			this.$el && this.$el.remove();
-			this.afterClose && this.afterClose();
+        },
 
-		},
+        removeEvents: function() {
 
-		delegateEvents: function(){
+            var eventNamespace = this.ens;
 
-			var self = this;
+            if (eventNamespace) {
 
-			$.each(this.events, function(eventString, handler){
+                this.$el.off(eventNamespace);
+                this.$document && this.$document.off(eventNamespace);
+                this.$window && this.$window.off(eventNamespace);
 
-				var temp = eventString.split(' '),
-					eventName = temp[0] + self.ens,
-					eventSelector = $.trim(eventString.slice(temp[0].length));
+                if (this.elementsWithBoundEvents) {
+                    $.each(this.elementsWithBoundEvents, function(i, el) {
+                        $(el).off(eventNamespace);
+                    });
+                    this.elementsWithBoundEvents = null;
+                }
 
-				self.$el.on(eventName, eventSelector, $.proxy(typeof handler === 'function' ? handler : self[handler], self));
+            }
 
-			});
+        },
 
-		},
+        remove: function() {
 
-		require: function(key, callback, context){
+            this.beforeRemove && this.beforeRemove();
+            this.removeEvents();
+            this.$el.remove();
+            this.afterRemove && this.afterRemove();
 
-			var deferred = require(key, callback, context || this);
+        },
 
-			deferred.baseViewDeferred = 'require: '+ key;
-			this.deferreds = this.deferreds || [];
-			this.deferreds.push(deferred);
+        $: function(selector) {
 
-			return deferred;
+            return this.$el.find(selector);
 
-		}
+        }
 
-	});
+    });
 
-	view.extend = function(viewDefinitions){
-
-		var parent = this;
-
-		var extendedView = viewDefinitions.hasOwnProperty('constructor') ? viewDefinitions.constructor : function() {
-		    parent.apply(this, arguments);
-		};
-
-		var Surrogate = function() { this.constructor = extendedView; };
-		Surrogate.prototype = parent.prototype;
-		extendedView.prototype = new Surrogate();
-
-		$.extend(extendedView.prototype, viewDefinitions);
-
-		return $.extend(extendedView, parent);
-
-	};
-
-	$.wk.simpleView = view;
-
-})(window.jQuery || window.Zepto);
+}));
