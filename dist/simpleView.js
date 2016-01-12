@@ -10,7 +10,10 @@
 
 }(this, function(typeFactory, $) {
 
-    var viewCounter = 0;
+    var viewCounter = 0,
+        callHook = function(hook, context) {
+            context[hook] && context[hook]();
+        };
 
     return typeFactory({
 
@@ -26,6 +29,7 @@
             }
 
             this.events && this.$el && this.setupEvents();
+            callHook('beforeInitialize', this);
             this.initialize && this.initialize.apply(this, arguments);
 
         },
@@ -35,7 +39,7 @@
             var eventNamespace = this.ens = this.ens || '.' + this.cid,
                 self = this,
                 specialSelectors = {
-                    'document': document,
+                    'document': window.document,
                     'window': window
                 };
 
@@ -61,6 +65,8 @@
 
             });
 
+            return this;
+
         },
 
         removeEvents: function() {
@@ -82,14 +88,87 @@
 
             }
 
+            return this;
+
         },
 
         remove: function() {
 
-            this.beforeRemove && this.beforeRemove();
-            this.removeEvents();
+            callHook('beforeRemove', this);
+            this.removeEvents().abortDeferreds().removeSubViews();
             this.$el.remove();
-            this.afterRemove && this.afterRemove();
+            callHook('afterRemove', this);
+
+            return this;
+
+        },
+
+        addDeferred: function(deferred) {
+
+            this.deferreds = this.deferreds || [];
+
+            if (!Array.prototype.indexOf || this.deferreds.indexOf(deferred) < 0) {
+                this.deferreds.push(deferred);
+            }
+
+            return deferred;
+
+        },
+
+        abortDeferreds: function() {
+
+            this.deferreds && $.each(this.deferreds, function(i, deferred) {
+
+                if (typeof deferred === 'object' && deferred.state && deferred.state() === 'pending') {
+                    deferred.abort ? deferred.abort() : deferred.reject();
+                }
+
+            });
+
+            delete this.deferreds;
+
+            return this;
+
+        },
+
+        require: function(key, callback) {
+
+            return this.addDeferred($.wk.repo.require(key, callback, this));
+
+        },
+
+        when: function(resources, callbackDone, callbackFail) {
+
+            var self = this;
+
+            $.each(resources = $.isArray(resources) ? resources : [resources], function(i, resource) {
+                self.addDeferred(resource);
+            });
+
+            return $.when.apply(window, resources)
+                .done($.proxy(callbackDone, this))
+                .fail($.proxy(callbackFail, this));
+
+        },
+
+        addSubView: function(subView) {
+
+            this.subViews = this.subViews || {};
+            this.subViews[subView.cid] = subView;
+
+            return subView;
+
+        },
+
+        removeSubViews: function() {
+
+            this.subViews && $.each(this.subViews, function(id, subView) {
+                subView.remove();
+            });
+
+            delete this.subViews;
+
+            return this;
 
         },
 
