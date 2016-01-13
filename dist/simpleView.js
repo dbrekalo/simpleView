@@ -10,10 +10,7 @@
 
 }(this, function(typeFactory, $) {
 
-    var viewCounter = 0,
-        callHook = function(hook, context) {
-            context[hook] && context[hook]();
-        };
+    var viewCounter = 0;
 
     return typeFactory({
 
@@ -29,7 +26,6 @@
             }
 
             this.events && this.$el && this.setupEvents();
-            callHook('beforeInitialize', this);
             this.initialize && this.initialize.apply(this, arguments);
 
         },
@@ -94,10 +90,12 @@
 
         remove: function() {
 
-            callHook('beforeRemove', this);
+            this.trigger('beforeRemove');
             this.removeEvents().abortDeferreds().removeSubViews();
             this.$el.remove();
-            callHook('afterRemove', this);
+            this.trigger('afterRemove');
+
+            delete this.onCallbacks;
 
             return this;
 
@@ -153,8 +151,14 @@
 
         addSubView: function(subView) {
 
+            var self = this;
+
             this.subViews = this.subViews || {};
             this.subViews[subView.cid] = subView;
+
+            subView.on('afterRemove', function() {
+                delete self.subViews[subView.cid];
+            });
 
             return subView;
 
@@ -175,6 +179,27 @@
         $: function(selector) {
 
             return this.$el.find(selector);
+
+        },
+
+        on: function(eventName, callback) {
+
+            this.onCallbacks = this.onCallbacks || {};
+            this.onCallbacks[eventName] = this.onCallbacks[eventName] || [];
+            this.onCallbacks[eventName].push(callback);
+
+        },
+
+        trigger: function(eventName, data) {
+
+            var self = this;
+
+            if (this.onCallbacks && this.onCallbacks[eventName]) {
+                $.each(this.onCallbacks[eventName], function(i, callback) {
+                    callback.call(self, data);
+                });
+                delete this.onCallbacks[eventName];
+            }
 
         }
 
