@@ -94,6 +94,8 @@
             }
 
             this.events && this.$el && this.setupEvents();
+
+            this.beforeInitialize && this.beforeInitialize.apply(this, arguments);
             this.initialize && this.initialize.apply(this, arguments);
 
         },
@@ -159,11 +161,10 @@
         remove: function() {
 
             this.trigger('beforeRemove');
-            this.removeEvents().abortDeferreds().removeSubViews();
+            this.removeEvents().abortDeferreds().removeViews();
             this.$el.remove();
             this.trigger('afterRemove');
-
-            delete this.onCallbacks;
+            this.off();
 
             return this;
 
@@ -197,12 +198,6 @@
 
         },
 
-        require: function(key, callback) {
-
-            return this.addDeferred($.wk.repo.require(key, callback, this));
-
-        },
-
         when: function(resources, callbackDone, callbackFail) {
 
             var self = this;
@@ -217,28 +212,26 @@
 
         },
 
-        addSubView: function(subView) {
+        addView: function(view) {
 
-            var self = this;
+            this.views = this.subViews || {};
+            this.views[view.cid] = view;
 
-            this.subViews = this.subViews || {};
-            this.subViews[subView.cid] = subView;
-
-            subView.on('afterRemove', function() {
-                delete self.subViews[subView.cid];
+            view.on('afterRemove', function() {
+                delete this.views[view.cid];
             });
 
-            return subView;
+            return view;
 
         },
 
-        removeSubViews: function() {
+        removeViews: function() {
 
-            this.subViews && $.each(this.subViews, function(id, subView) {
-                subView.remove();
+            this.views && $.each(this.views, function(id, view) {
+                view.remove();
             });
 
-            delete this.subViews;
+            delete this.views;
 
             return this;
 
@@ -256,6 +249,20 @@
             this.onCallbacks[eventName] = this.onCallbacks[eventName] || [];
             this.onCallbacks[eventName].push(callback);
 
+            return this;
+
+        },
+
+        off: function(eventName) {
+
+            if (eventName && this.onCallbacks) {
+                delete this.onCallbacks[eventName];
+            } else {
+                delete this.onCallbacks;
+            }
+
+            return this;
+
         },
 
         trigger: function(eventName, data) {
@@ -266,8 +273,9 @@
                 $.each(this.onCallbacks[eventName], function(i, callback) {
                     callback.call(self, data);
                 });
-                delete this.onCallbacks[eventName];
             }
+
+            return this;
 
         }
 
