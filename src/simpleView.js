@@ -1,18 +1,18 @@
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
-        define(['type-factory', 'jquery'], factory);
+        define(['type-factory', 'mitty', 'jquery'], factory);
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('type-factory'), require('jquery'));
+        module.exports = factory(require('type-factory'), require('mitty'), require('jquery'));
     } else {
-        root.SimpleView = factory(typeFactory, jQuery);
+        root.SimpleView = factory(root.typeFactory, root.mitty, root.jQuery);
     }
 
-}(this, function(typeFactory, $) {
+}(this, function(typeFactory, mitty, $) {
 
     var viewCounter = 0;
 
-    return typeFactory({
+    var View = typeFactory({
 
         delegatedEvents: true,
 
@@ -96,7 +96,7 @@
             this.removeEvents().abortDeferreds().removeViews();
             this.$el.remove();
             this.trigger('afterRemove');
-            this.off();
+            this.off().stopListening();
 
             return this;
 
@@ -146,10 +146,10 @@
 
         addView: function(view) {
 
-            this.views = this.subViews || {};
+            this.views = this.views || {};
             this.views[view.cid] = view;
 
-            view.on('afterRemove', function() {
+            this.listenTo(view, 'afterRemove', function() {
                 delete this.views[view.cid];
             });
 
@@ -173,44 +173,12 @@
 
             return this.$el.find(selector);
 
-        },
-
-        on: function(eventName, callback) {
-
-            this.onCallbacks = this.onCallbacks || {};
-            this.onCallbacks[eventName] = this.onCallbacks[eventName] || [];
-            this.onCallbacks[eventName].push(callback);
-
-            return this;
-
-        },
-
-        off: function(eventName) {
-
-            if (eventName && this.onCallbacks) {
-                delete this.onCallbacks[eventName];
-            } else {
-                delete this.onCallbacks;
-            }
-
-            return this;
-
-        },
-
-        trigger: function(eventName, data) {
-
-            var self = this;
-
-            if (this.onCallbacks && this.onCallbacks[eventName]) {
-                $.each(this.onCallbacks[eventName], function(i, callback) {
-                    callback.call(self, data);
-                });
-            }
-
-            return this;
-
         }
 
     });
+
+    mitty(View.prototype);
+
+    return View;
 
 }));

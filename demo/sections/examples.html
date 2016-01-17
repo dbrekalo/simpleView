@@ -29,9 +29,20 @@
                 }
             });
 
-            console.log(new TestClass({$el: '.testCase'}));
-
             var TestClass2 = TestClass.extend({
+                initialize: function() {
+
+                    var subView = this.addView(new TestClass({$el: '.testCase'}));
+
+                    this.listenTo(subView, 'afterRemove', function() {
+                        console.log('phew');
+                    });
+
+                    setTimeout(function() {
+                        subView.remove();
+                    }.bind(this), 1000);
+
+                },
                 play: function() {
                     console.log(2, this.cid);
                 }

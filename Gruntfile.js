@@ -35,7 +35,7 @@ module.exports = function(grunt) {
             options: {
                 'jshintrc': '.jshintrc'
             },
-            all: ['src','Gruntfile.js']
+            all: ['src', 'Gruntfile.js']
         },
 
         jscs: {
@@ -44,20 +44,26 @@ module.exports = function(grunt) {
             },
             scripts: {
                 files: {
-                    src: [
-                        'src/**/*.js'
-                    ]
+                    src: ['src/**/*.js', 'Gruntfile.js']
                 }
             }
         },
 
         concat: {
             bundle: {
-                src: ['bower_components/type-factory/dist/typeFactory.js', 'dist/simpleView.js'],
+                src: [
+                    'bower_components/type-factory/dist/typeFactory.js',
+                    'bower_components/mitty/dist/mitty.js',
+                    'dist/simpleView.js'
+                ],
                 dest: 'dist/simpleView.bundle.js'
             },
             bundleMin: {
-                src: ['bower_components/type-factory/dist/typeFactory.min.js', 'dist/simpleView.min.js'],
+                src: [
+                    'bower_components/type-factory/dist/typeFactory.min.js',
+                    'bower_components/mitty/dist/mitty.min.js',
+                    'dist/simpleView.min.js'
+                ],
                 dest: 'dist/simpleView.bundle.min.js'
             }
         },

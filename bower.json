@@ -1,6 +1,6 @@
 {
   "name": "simple-view",
-  "version": "2.0.0-beta.2",
+  "version": "2.0.0-beta.3",
   "homepage": "https://github.com/dbrekalo/simpleView",
   "authors": [
     "Damir Brekalo <dbrekalo@gmail.com>"
@@ -21,6 +21,7 @@
     "tests"
   ],
   "dependencies": {
+    "mitty": "^1.0.0",
     "jquery": ">=1.11",
     "type-factory": "^1.0.1"
   }

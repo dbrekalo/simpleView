@@ -10,15 +10,13 @@
 
 }(this, function() {
 
-    function extend(extendingObject) {
+    function transferProperties(destination, source) {
 
-        for (var i = 1; i < arguments.length; i++) {
-            for (var key in arguments[i]) {
-                arguments[i].hasOwnProperty(key) && (extendingObject[key] = arguments[i][key]);
-            }
+        for (var key in source) {
+            source.hasOwnProperty(key) && (destination[key] = source[key]);
         }
 
-        return extendingObject;
+        return destination;
 
     }
 
@@ -40,11 +38,11 @@
             Surrogate.prototype = parentType.prototype;
             generatedType.prototype = new Surrogate();
 
-            extend(generatedType, parentType);
+            transferProperties(generatedType, parentType);
         }
 
-        extend(generatedType, staticProperties);
-        extend(generatedType.prototype, prototypeProperties);
+        staticProperties && transferProperties(generatedType, staticProperties);
+        prototypeProperties && transferProperties(generatedType.prototype, prototypeProperties);
 
         return generatedType;
 
@@ -69,18 +67,139 @@
 (function(root, factory) {
 
     if (typeof define === 'function' && define.amd) {
-        define(['type-factory', 'jquery'], factory);
+        define([], factory);
     } else if (typeof module === 'object' && module.exports) {
-        module.exports = factory(require('type-factory'), require('jquery'));
+        module.exports = factory();
     } else {
-        root.SimpleView = factory(typeFactory, jQuery);
+        root.mitty = factory();
     }
 
-}(this, function(typeFactory, $) {
+}(this, function() {
+
+    var registry = [];
+
+    var api = {
+
+        on: function(eventName, callback) {
+            addToRegistry(this, this, eventName, callback);
+            return this;
+        },
+
+        listenTo: function(publisher, eventName, callback) {
+            addToRegistry(publisher, this, eventName, callback);
+            return this;
+        },
+
+        off: function(eventName, callback) {
+            removeFromRegistry(this, null, eventName, callback);
+            return this;
+        },
+
+        stopListening: function(publisher, eventName, callback) {
+            removeFromRegistry(publisher, this, eventName, callback);
+            return this;
+        },
+
+        trigger: function(eventName, data) {
+            publishEvent(this, eventName, data);
+            return this;
+        }
+    };
+
+    function each(collection, callback) {
+
+        if (collection instanceof Array) {
+
+            for (var i = 0; i < collection.length; i++) {
+                callback(collection[i], i);
+            }
+
+        } else {
+
+            for (var key in collection) {
+                collection.hasOwnProperty(key) && callback(key, collection[key]);
+            }
+
+        }
+
+    }
+
+    function addToRegistry(publisher, listener, eventName, callback) {
+
+        registry.push({
+            publisher: publisher,
+            listener: listener,
+            eventName: eventName,
+            callback: callback
+        });
+
+    }
+
+    function removeFromRegistry(publisher, listener, eventName, callback) {
+
+        var criteria = {},
+            temp = [];
+
+        listener && (criteria.listener = listener);
+        callback && (criteria.callback = callback);
+        eventName && (criteria.eventName = eventName);
+        publisher && (criteria.publisher = publisher);
+
+        each(registry, function(item) {
+
+            var shouldRemove = true;
+
+            each(criteria, function(name, ref) {
+                if (item[name] !== ref) {
+                    shouldRemove = false;
+                }
+            });
+
+            !shouldRemove && temp.push(item);
+
+        });
+
+        registry = temp;
+
+    }
+
+    function publishEvent(publisher, eventName, data) {
+
+        each(registry, function(item) {
+            if (item.publisher === publisher && item.eventName === eventName) {
+                item.callback.call(item.listener, data);
+            }
+        });
+
+    }
+
+    return function(objectToExtend) {
+
+        each(api, function(methodName, method) {
+            objectToExtend[methodName] = method;
+        });
+
+        return objectToExtend;
+
+    };
+
+}));
+
+(function(root, factory) {
+
+    if (typeof define === 'function' && define.amd) {
+        define(['type-factory', 'mitty', 'jquery'], factory);
+    } else if (typeof module === 'object' && module.exports) {
+        module.exports = factory(require('type-factory'), require('mitty'), require('jquery'));
+    } else {
+        root.SimpleView = factory(root.typeFactory, root.mitty, root.jQuery);
+    }
+
+}(this, function(typeFactory, mitty, $) {
 
     var viewCounter = 0;
 
-    return typeFactory({
+    var View = typeFactory({
 
         delegatedEvents: true,
 
@@ -164,7 +283,7 @@
             this.removeEvents().abortDeferreds().removeViews();
             this.$el.remove();
             this.trigger('afterRemove');
-            this.off();
+            this.off().stopListening();
 
             return this;
 
@@ -214,10 +333,10 @@
 
         addView: function(view) {
 
-            this.views = this.subViews || {};
+            this.views = this.views || {};
             this.views[view.cid] = view;
 
-            view.on('afterRemove', function() {
+            this.listenTo(view, 'afterRemove', function() {
                 delete this.views[view.cid];
             });
 
@@ -241,44 +360,12 @@
 
             return this.$el.find(selector);
 
-        },
-
-        on: function(eventName, callback) {
-
-            this.onCallbacks = this.onCallbacks || {};
-            this.onCallbacks[eventName] = this.onCallbacks[eventName] || [];
-            this.onCallbacks[eventName].push(callback);
-
-            return this;
-
-        },
-
-        off: function(eventName) {
-
-            if (eventName && this.onCallbacks) {
-                delete this.onCallbacks[eventName];
-            } else {
-                delete this.onCallbacks;
-            }
-
-            return this;
-
-        },
-
-        trigger: function(eventName, data) {
-
-            var self = this;
-
-            if (this.onCallbacks && this.onCallbacks[eventName]) {
-                $.each(this.onCallbacks[eventName], function(i, callback) {
-                    callback.call(self, data);
-                });
-            }
-
-            return this;
-
         }
 
     });
+
+    mitty(View.prototype);
+
+    return View;
 
 }));
