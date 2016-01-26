@@ -10,7 +10,28 @@
 
 }(this, function(typeFactory, mitty, $) {
 
-    var viewCounter = 0;
+    var viewCounter = 0,
+        variableInEventStringRE = /{{(\S+)}}/g,
+        parseEventString = function(eventString, context) {
+
+            return eventString.replace(variableInEventStringRE, function(match, namespace) {
+
+                var isInCurrentContext = namespace.indexOf('this.') === 0,
+                    current = isInCurrentContext ? context : window,
+                    pieces = (isInCurrentContext ? namespace.slice(5) : namespace).split('.');
+
+                for (var i in pieces) {
+                    current = current[pieces[i]];
+                    if (typeof current === 'undefined') {
+                        throw new Error('Undefined variable in event string');
+                    }
+                }
+
+                return current;
+
+            });
+
+        };
 
     var View = typeFactory({
 
@@ -42,6 +63,8 @@
                 };
 
             $.each(typeof this.events === 'function' ? this.events() : this.events, function(eventString, handler) {
+
+                eventString = parseEventString(eventString, self);
 
                 var isOneEvent = eventString.indexOf('one:') === 0,
                     splitEventString = (isOneEvent ? eventString.slice(4) : eventString).split(' '),
