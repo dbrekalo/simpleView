@@ -76,32 +76,36 @@
 
 }(this, function() {
 
-    var registry = [];
-
     var api = {
 
         on: function(eventName, callback) {
-            addToRegistry(this, this, eventName, callback);
+            registerEvent(this, this, eventName, callback);
             return this;
         },
 
         listenTo: function(publisher, eventName, callback) {
-            addToRegistry(publisher, this, eventName, callback);
+            registerEvent(publisher, this, eventName, callback);
+            this._mittyListenTo = this._mittyListenTo || [];
+            indexOf(this._mittyListenTo, publisher) < 0 && this._mittyListenTo.push(publisher);
             return this;
         },
 
         off: function(eventName, callback) {
-            removeFromRegistry(this, null, eventName, callback);
+            removeFromPublisher(this, null, eventName, callback);
             return this;
         },
 
         stopListening: function(publisher, eventName, callback) {
-            removeFromRegistry(publisher, this, eventName, callback);
+            removeFromListener(this, publisher, eventName, callback);
             return this;
         },
 
         trigger: function(eventName, data) {
-            publishEvent(this, eventName, data);
+            this._mittyOn && each(this._mittyOn, function(item) {
+                if (item.eventName === eventName) {
+                    item.callback.call(item.listener, data);
+                }
+            });
             return this;
         }
     };
@@ -109,25 +113,37 @@
     function each(collection, callback) {
 
         if (collection instanceof Array) {
-
             for (var i = 0; i < collection.length; i++) {
                 callback(collection[i], i);
             }
-
         } else {
-
             for (var key in collection) {
                 collection.hasOwnProperty(key) && callback(key, collection[key]);
             }
-
         }
 
     }
 
-    function addToRegistry(publisher, listener, eventName, callback) {
+    function indexOf(collection, objectToSearch) {
 
-        registry.push({
-            publisher: publisher,
+        if (Array.prototype.indexOf) {
+            return collection.indexOf(objectToSearch);
+        } else {
+            for (var i = 0; i < collection.length; i++) {
+                if (collection[i] === objectToSearch) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+    }
+
+    function registerEvent(publisher, listener, eventName, callback) {
+
+        publisher._mittyOn = publisher._mittyOn || [];
+
+        publisher._mittyOn.push({
             listener: listener,
             eventName: eventName,
             callback: callback
@@ -135,41 +151,70 @@
 
     }
 
-    function removeFromRegistry(publisher, listener, eventName, callback) {
+    function removeFromPublisher(publisher, listener, eventName, callback) {
 
-        var criteria = {},
+        if (publisher._mittyOn && publisher._mittyOn.length) {
+
+            var criteria = {},
             temp = [];
 
-        listener && (criteria.listener = listener);
-        callback && (criteria.callback = callback);
-        eventName && (criteria.eventName = eventName);
-        publisher && (criteria.publisher = publisher);
+            listener && (criteria.listener = listener);
+            callback && (criteria.callback = callback);
+            eventName && (criteria.eventName = eventName);
 
-        each(registry, function(item) {
+            each(publisher._mittyOn, function(item) {
 
-            var shouldRemove = true;
+                var shouldRemove = true;
 
-            each(criteria, function(name, ref) {
-                if (item[name] !== ref) {
-                    shouldRemove = false;
-                }
+                each(criteria, function(name, ref) {
+                    if (item[name] !== ref) {
+                        shouldRemove = false;
+                    }
+                });
+
+                !shouldRemove && temp.push(item);
+
             });
 
-            !shouldRemove && temp.push(item);
+            publisher._mittyOn = temp;
 
-        });
-
-        registry = temp;
+        }
 
     }
 
-    function publishEvent(publisher, eventName, data) {
+    function containsListener(publisher, listener) {
 
-        each(registry, function(item) {
-            if (item.publisher === publisher && item.eventName === eventName) {
-                item.callback.call(item.listener, data);
+        if (publisher._mittyOn) {
+            for (var i = 0; i < publisher._mittyOn.length; i++) {
+                if (publisher._mittyOn[i].listener === listener) {
+                    return true;
+                }
             }
-        });
+        }
+        return false;
+
+    }
+
+    function removeFromListener(listener, publisher, eventName, callback) {
+
+        var listening = listener._mittyListenTo && listener._mittyListenTo.length > 0;
+
+        if (publisher && listening) {
+
+            removeFromPublisher(publisher, listener, eventName, callback);
+
+            if (!containsListener(publisher, listener)) {
+                listener._mittyListenTo.splice(indexOf(listener._mittyListenTo, publisher), 1);
+            }
+
+        } else if (listening) {
+
+            each(listener._mittyListenTo, function(item) {
+                removeFromPublisher(item, listener);
+            });
+            listener._mittyListenTo = [];
+
+        }
 
     }
 
@@ -212,10 +257,10 @@
                 delete options.$el;
             }
 
-            this.events && this.$el && this.setupEvents();
-
             this.beforeInitialize && this.beforeInitialize.apply(this, arguments);
             this.initialize && this.initialize.apply(this, arguments);
+
+            this.events && this.$el && this.setupEvents();
 
         },
 

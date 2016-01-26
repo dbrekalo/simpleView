@@ -25,10 +25,10 @@
                 delete options.$el;
             }
 
-            this.events && this.$el && this.setupEvents();
-
             this.beforeInitialize && this.beforeInitialize.apply(this, arguments);
             this.initialize && this.initialize.apply(this, arguments);
+
+            this.events && this.$el && this.setupEvents();
 
         },
 
