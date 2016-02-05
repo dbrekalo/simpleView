@@ -301,7 +301,7 @@
                 var isOneEvent = eventString.indexOf('one:') === 0,
                     splitEventString = (isOneEvent ? eventString.slice(4) : eventString).split(' '),
                     eventName = splitEventString[0] + eventNamespace,
-                    eventSelector   = splitEventString.slice(1).join(' '),
+                    eventSelector = splitEventString.slice(1).join(' '),
                     $el = self.$el;
 
                 if (specialSelectors[eventSelector]) {
@@ -328,7 +328,7 @@
 
             if (eventNamespace) {
 
-                this.$el.off(eventNamespace);
+                this.$el && this.$el.off(eventNamespace);
                 this.$document && this.$document.off(eventNamespace);
                 this.$window && this.$window.off(eventNamespace);
 
@@ -349,7 +349,7 @@
 
             this.trigger('beforeRemove');
             this.removeEvents().abortDeferreds().removeViews();
-            this.$el.remove();
+            this.$el && this.$el.remove();
             this.trigger('afterRemove');
             this.off().stopListening();
 
