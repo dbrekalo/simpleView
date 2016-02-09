@@ -41,14 +41,19 @@
 </nav>
 
         <p class="attireTextType2">
-
             Simple view allows you to delegate or bind events to current element context with a simple declarative syntax.
-            Events strings can be dynamically configured with injected variables.
-            One time events are configured with simple event string prefix.
+            Event strings can be dynamically configured with injected variables.
+            One time events are configured with simple prefix on event string .
             You can listen to window and document events and be sure that all handlers will be cleaned up upon view removal.
-
-            Every instance of simple view can have sub-views and be used as container of views or collection view.
-
+        </p>
+        <p class="attireTextType2">
+            Every Simple view instance can have sub-views and be used as container of views (collection view).
+            Controller and component views can be easily composed if that is how you want your application to be structured.
+            Choose your view hierarchy as it suits your project needs.
+        </p>
+        <p class="attireTextType2">
+            Simple view works great with server side rendered html.
+            There is no requirement for client side templating or rendering of any kind.
         </p>
 
     </div>
@@ -60,60 +65,298 @@
         <h2 class="attireTitleType2">Examples</h2>
 
         <p class="attireTextType2">
-            Components built with Simple view usually have structure similar to one bellow:
+            Lets build a simple fake guestbook for users to sign (You haven't seen one for a while, did you?).
+            Nothing is persisted and saved to database - so feel free to sign it.
         </p>
 
-        <pre class="attireCodeHighlight"><code class="language-javascript">
-            var MyView = SimpleView.extend({
+        <hr class="attireSeparator mod1">
 
-                defaults: {
-                    titleSelector: '.title'
+        <div class="guestbook">
+            <form>
+                <input class="entryInput" placeholder="Type here..." type="text">
+                <button type="submit">+</button>
+            </form>
+            <div class="entryList"></div>
+        </div>
+
+        <hr class="attireSeparator mod1">
+
+        <script>
+            var Guestbook = SimpleView.extend({
+                initialize: function() {
+                    this.$entryList = this.$('.entryList');
+                    this.$input = this.$('.entryInput');
                 },
+                events: {
+                    'submit form': 'handleSubmitEntry',
+                    'resize window': 'updateView',
+                },
+                handleSubmitEntry: function(e) {
+                    e.preventDefault();
+                    var message = this.$input.val();
+                    message.length && this.addEntry(message);
+                    this.$input.val('');
+                },
+                addEntry: function(message) {
+                    var entryView = this.addView(new GuestbookEntry({message: message}));
+                    entryView.$el.prependTo(this.$entryList);
+                },
+                updateView: function() {
+                    this.$el.toggleClass('small', this.$window.width() < 500);
+                }
+            });
 
+            var GuestbookEntry = SimpleView.extend({
+                defaults: {
+                    className: 'guestbookEntry',
+                    btnRemoveClass: 'removeEntry'
+                },
                 initialize: function(options) {
                     this.options = $.extend({}, this.defaults, options);
+                    this.$el = $(this.template(this.options));
                 },
-
                 events: {
-                    'click .text': 'updateView',
-                    'one:click .toggleBtn': function(e) { // one time events
-                        // event handler logic
-                    },
-                    'click {{this.options.titleSelector}}': 'updateView', // dynamic selector
-                    'resize window': 'updateView', // window events
-                    'one:keyup document': 'handleKeyup' // document events
+                    'click .{{this.options.btnRemoveClass}}': 'remove',
+                    'one:click .message': 'clickMessage'
                 },
-
-                updateView: function() {
-                    // update logic
+                template: function(data) {
+                    return '<div class="' + data.className + '">\
+                                <span class="message">' + data.message + '</span>\
+                                <button class="' + data.btnRemoveClass + '">×</button>\
+                            </div>';
                 },
-
-                handleKeyup: function() {
-                    // some update logic
+                clickMessage: function(e) {
+                    console.log($(e.target).text());
                 }
             });
-        </code></pre>
+
+            var guestbook = new Guestbook({$el: '.guestbook'});
+
+            guestbook.addEntry('Make your willy bigger. Money back guarantee. If it works.');
+            guestbook.addEntry('Dear Sir. I am leaving a mark here.');
+            guestbook.addEntry('Yeah i had sex with my girlfriend. So hot. Hungry now.');
+            guestbook.addEntry('My app is soo much better then this. Go see React. It is the only way to do frontend now');
+
+        </script>
+
+        <style>
+            .guestbook {
+                padding: 2em;
+                background: #fff; box-shadow: 0 0.1em 0.3em rgba(0,0,0,0.1);
+            }
+            .guestbook > form {
+                position: relative; padding-right: 6em;
+                border: 1px solid #dcdcdc;
+            }
+            .guestbook > form > input {
+                font-size: 1.8em; padding: 1em; display: block; width: 100%; box-sizing: border-box;
+                color: #303030; border: 0; background: transparent;
+                appearance:none; -moz-appearance:none; -webkit-appearance:none;
+            }
+            .guestbook > form > button {
+                font-size: 3em; font-weight: bold;
+                position: absolute; right: 0; top: 0; bottom: 0; margin: 0; padding: 0; border: 0; width: 2em;
+                cursor: pointer; background: none; border-left: 1px solid #dcdcdc;
+            }
+            .guestbook > .entryList{
+                padding: 3em 2em 2em;
+            }
+            .guestbookEntry {
+                display: block; position: relative;
+                font-size: 1.5em; line-height: 1.4; padding: 0.6em 3em 0.6em 0;
+                border-bottom: 1px solid #ededed;
+            }
+            .guestbookEntry:last-child {
+                border: 0;
+            }
+            .guestbookEntry > .removeEntry {
+                font-size: 1.1em;
+                position: absolute; right: 0; top: 0.5em; margin: 0; padding: 0; border: 0;
+                cursor: pointer; background: none; color: #999;
+            }
+        </style>
 
         <p class="attireTextType2">
-            Subclass and add sub views like so:
+            For our fake guestbook to work we had to write following html:
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-markup">
+            <script type="prism-html-markup"><div class="guestbook">
+                <form>
+                    <input class="entryInput" placeholder="Type here..." type="text">
+                    <button type="submit">+</button>
+                </form>
+                <div class="entryList"></div>
+            </div>
+            </script>
+        </code></pre>
+
+        <hr class="attireSeparator mod1">
+
+        <p class="attireTextType2">
+            Our guestbook Simple view type is defined like so:
         </p>
 
         <pre class="attireCodeHighlight"><code class="language-javascript">
-            var MyViewSubClass = MyView.extend({
-                someExtraMethod: function(){
-                    this.addView(new MyAnotherView({$el: this.$('.subView')}))
-                }
-            });
-
-            var MyAnotherView = SimpleView.extend({
+            var Guestbook = SimpleView.extend({
                 initialize: function() {
-                    // initializing logic
+                    this.$entryList = this.$('.entryList');
+                    this.$input = this.$('.entryInput');
+                },
+                events: {
+                    'submit form': 'handleSubmitEntry',
+                    'resize window': 'updateView',
+                },
+                handleSubmitEntry: function(e) {
+                    e.preventDefault();
+                    var message = this.$input.val();
+                    message.length && this.addEntry(message);
+                    this.$input.val('');
+                },
+                addEntry: function(message) {
+                    var entryView = this.addView(new GuestbookEntry({message: message}));
+                    entryView.$el.prependTo(this.$entryList);
+                },
+                updateView: function() {
+                    this.$el.toggleClass('small', this.$window.width() < 500);
                 }
             });
 
-            var view = new MyViewSubClass({$el: '.test'})
-            view.remove(); // will remove all attached sub views as well
+            new Guestbook({$el: '.guestbook'});
         </code></pre>
+
+        <hr class="attireSeparator mod1">
+
+        <p class="attireTextType2">
+            Guestbook entries are written as follows:
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            var GuestbookEntry = SimpleView.extend({
+                defaults: {
+                    className: 'guestbookEntry',
+                    btnRemoveClass: 'removeEntry'
+                },
+                initialize: function(options) {
+                    this.options = $.extend({}, this.defaults, options);
+                    this.$el = $(this.template(this.options));
+                },
+                events: {
+                    'click .{{this.options.btnRemoveClass}}': 'remove',
+                    'one:click .message': 'clickMessage'
+                },
+                template: function(data) {
+                    return '&#x3C;div class=&#x22;&#x27; + data.className + &#x27;&#x22;&#x3E;\
+                                &#x3C;span class=&#x22;message&#x22;&#x3E;&#x27; + data.message + &#x27;&#x3C;/span&#x3E;\
+                                &#x3C;button class=&#x22;&#x27; + data.btnRemoveClass + &#x27;&#x22;&#x3E;&#xD7;&#x3C;/button&#x3E;\
+                            &#x3C;/div&#x3E;';
+                },
+                clickMessage: function(e) {
+                    console.log($(e.target).text());
+                }
+            });
+        </code></pre>
+
+    </div>
+</section>
+
+    <section class="attireBlock">
+    <div class="inner">
+
+        <h2 class="attireTitleType2">Api and options</h2>
+
+        <h3 class="attireTitleType3">Simpleview.extend(prototypeProperties, [staticProperties])</h3>
+
+        <p class="attireTextType2">
+            Used to define view types / constructor functions.
+            Define prototype methods for view via object hash.
+            Static properties are optional.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">initialize(options)</h3>
+
+        <p class="attireTextType2">
+            Define initialize function in prototype properties if you need to do some logic on view startup.
+            Will receive all arguments from constructor.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">events(object | function)</h3>
+
+        <p class="attireTextType2">
+            Declare events with object hash or custom function in prototype properties.
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            events: {
+                'click .selector': 'handler',
+                'click {{this.someVariable}}': 'handler', // variable will be injected
+                'one:submit form': 'oneSubmit', // handler will run only once
+                'resize window': 'onWindowResize',
+                'keyup document': 'onDocumentKeyup'
+            }
+        </code></pre>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">delegatedEvents: true | false</h3>
+
+        <p class="attireTextType2">
+            Events are delegated to view by default.
+            If you want to bind them directly to elements (to avoid excessive bubbling) set "delegatedEvents" to false.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">addView()</h3>
+
+        <p class="attireTextType2">
+            Adds view instance to sub view registry. This binding enables effective cleanup of container views.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">removeViews()</h3>
+
+        <p class="attireTextType2">
+            Removes all registered sub views.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">$(selector)</h3>
+
+        <p class="attireTextType2">
+            Alias for this.$el.find(selector);
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">when(resources, [callbackDone, [callbackFail]]) {</h3>
+
+        <p class="attireTextType2">
+            Similar to $.when. Resources can be array of deferreds or single deferred. Callbacks are executed with view instance as context.
+        </p>
+
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">remove()</h3>
+
+        <p class="attireTextType2">
+            Removes view from DOM and does cleanup of all bound events.
+        </p>
 
     </div>
 </section>

@@ -1,0 +1,100 @@
+<section class="attireBlock">
+    <div class="inner">
+
+        <h2 class="attireTitleType2">Api and options</h2>
+
+        <h3 class="attireTitleType3">Simpleview.extend(prototypeProperties, [staticProperties])</h3>
+
+        <p class="attireTextType2">
+            Used to define view types / constructor functions.
+            Define prototype methods for view via object hash.
+            Static properties are optional.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">initialize(options)</h3>
+
+        <p class="attireTextType2">
+            Define initialize function in prototype properties if you need to do some logic on view startup.
+            Will receive all arguments from constructor.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">events(object | function)</h3>
+
+        <p class="attireTextType2">
+            Declare events with object hash or custom function in prototype properties.
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            events: {
+                'click .selector': 'handler',
+                'click {{this.someVariable}}': 'handler', // variable will be injected
+                'one:submit form': 'oneSubmit', // handler will run only once
+                'resize window': 'onWindowResize',
+                'keyup document': 'onDocumentKeyup'
+            }
+        </code></pre>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">delegatedEvents: true | false</h3>
+
+        <p class="attireTextType2">
+            Events are delegated to view by default.
+            If you want to bind them directly to elements (to avoid excessive bubbling) set "delegatedEvents" to false.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">addView()</h3>
+
+        <p class="attireTextType2">
+            Adds view instance to sub view registry. This binding enables effective cleanup of container views.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">removeViews()</h3>
+
+        <p class="attireTextType2">
+            Removes all registered sub views.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">$(selector)</h3>
+
+        <p class="attireTextType2">
+            Alias for this.$el.find(selector);
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">when(resources, [callbackDone, [callbackFail]]) {</h3>
+
+        <p class="attireTextType2">
+            Similar to $.when. Resources can be array of deferreds or single deferred. Callbacks are executed with view instance as context.
+        </p>
+
+
+        <hr class="attireSeparator mod1">
+
+
+        <h3 class="attireTitleType3">remove()</h3>
+
+        <p class="attireTextType2">
+            Removes view from DOM and does cleanup of all bound events.
+        </p>
+
+    </div>
+</section>
