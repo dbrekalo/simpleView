@@ -23,8 +23,9 @@
         <h1 data-nav-title="About" class="attireTitleType1">Simple view</h1>
 
         <p class="attireTextType1">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Omnis ullam beatae laborum ab.
-            Dicta, soluta voluptates quasi expedita ut sint commodi doloremque perspiciatis voluptatem ipsa minus repellendus, officiis delectus aut.
+            Organize your application interface with lightweight javascript view components.
+            Works pretty much like a augmented Backbone view with no large dependencies.
+            Weighs around 1.5 KB.
         </p>
 
         <nav class="attireAuthor">
@@ -40,8 +41,14 @@
 </nav>
 
         <p class="attireTextType2">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Omnis ullam beatae laborum ab.
-            Dicta, soluta voluptates quasi expedita ut sint commodi doloremque perspiciatis voluptatem ipsa minus repellendus, officiis delectus aut.
+
+            Simple view allows you to delegate or bind events to current element context with a simple declarative syntax.
+            Events strings can be dynamically configured with injected variables.
+            One time events are configured with simple event string prefix.
+            You can listen to window and document events and be sure that all handlers will be cleaned up upon view removal.
+
+            Every instance of simple view can have sub-views and be used as container of views or collection view.
+
         </p>
 
     </div>
@@ -53,55 +60,60 @@
         <h2 class="attireTitleType2">Examples</h2>
 
         <p class="attireTextType2">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odit quo omnis sapiente iure a. Earum quod, soluta distinctio. Temporibus ducimus quis saepe ullam alias non repellat blanditiis consequatur eius odio.
+            Components built with Simple view usually have structure similar to one bellow:
         </p>
 
-        <script>
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            var MyView = SimpleView.extend({
 
-            var TestClass = SimpleView.extend({
-                customSelector: '.blabla',
+                defaults: {
+                    titleSelector: '.title'
+                },
+
+                initialize: function(options) {
+                    this.options = $.extend({}, this.defaults, options);
+                },
+
                 events: {
-                    'one:click .attireTitleType2': function(e) {
+                    'click .text': 'updateView',
+                    'one:click .toggleBtn': function(e) { // one time events
                         console.log($(e.target).text());
                     },
-                    'click .attireTextType2': function(e) {
-                        console.log($(e.target).text());
-                    },
-                    'click {{this.customSelector}}': 'play',
-                    'resize window': 'showSizeText',
-                    'one:keyup document': 'play'
+                    'click {{this.options.titleSelector}}': 'play', // dynamic selector
+                    'resize window': 'updateView', // window events
+                    'one:keyup document': 'handleKeyup'
                 },
-                play: function() {
-                    console.log(this.cid);
+
+                updateView: function() {
+                    // update logic
                 },
-                showSizeText: function() {
-                    this.$sizeText = this.$sizeText || $('<p>').addClass('attireTextType2').appendTo(this.$('.inner'));
-                    this.$sizeText.text('Current window size is ' + this.$window.outerWidth() + 'px.');
+
+                handleKeyup: function() {
+                    // some update logic
+                }
+            });
+        </code></pre>
+
+        <p class="attireTextType2">
+            Subclass and add sub views like so:
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            var MyViewSubClass = MyView.extend({
+                someExtraMethod: function(){
+                    this.addView(new MyAnotherView({$el: this.$('.subView')}))
                 }
             });
 
-            var TestClass2 = TestClass.extend({
+            var MyAnotherView = SimpleView.extend({
                 initialize: function() {
-
-                    var subView = this.addView(new TestClass({$el: '.testCase'}));
-
-                    this.listenTo(subView, 'afterRemove', function() {
-                        console.log('phew');
-                    });
-
-                    setTimeout(function() {
-                        subView.remove();
-                    }.bind(this), 1000);
-
-                },
-                play: function() {
-                    console.log(2, this.cid);
+                    // initializing logic
                 }
             });
 
-            console.log(new TestClass2({$el: '.testCase'}));
-
-        </script>
+            var view = new MyViewSubClass({$el: '.test'})
+            view.remove(); // will remove all attached sub views as well
+        </code></pre>
 
     </div>
 </section>
@@ -113,7 +125,9 @@
 
         <p class="attireTextType2">
             For browser usage browse dist folder - if working with build tools go with src folder.
-            Download library files from <a href="https://github.com/dbrekalo/simpleView">github repo</a> or get them via bower (bower install jquery-simple-view)
+            Download library files from <a href="https://github.com/dbrekalo/simpleView">github repo</a>,
+            get them via bower (bower install simple-view)
+            or via npm (npm install jquery-simple-view)
         </p>
 
     </div>

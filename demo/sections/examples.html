@@ -4,55 +4,60 @@
         <h2 class="attireTitleType2">Examples</h2>
 
         <p class="attireTextType2">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odit quo omnis sapiente iure a. Earum quod, soluta distinctio. Temporibus ducimus quis saepe ullam alias non repellat blanditiis consequatur eius odio.
+            Components built with Simple view usually have structure similar to one bellow:
         </p>
 
-        <script>
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            var MyView = SimpleView.extend({
 
-            var TestClass = SimpleView.extend({
-                customSelector: '.blabla',
+                defaults: {
+                    titleSelector: '.title'
+                },
+
+                initialize: function(options) {
+                    this.options = $.extend({}, this.defaults, options);
+                },
+
                 events: {
-                    'one:click .attireTitleType2': function(e) {
+                    'click .text': 'updateView',
+                    'one:click .toggleBtn': function(e) { // one time events
                         console.log($(e.target).text());
                     },
-                    'click .attireTextType2': function(e) {
-                        console.log($(e.target).text());
-                    },
-                    'click {{this.customSelector}}': 'play',
-                    'resize window': 'showSizeText',
-                    'one:keyup document': 'play'
+                    'click {{this.options.titleSelector}}': 'play', // dynamic selector
+                    'resize window': 'updateView', // window events
+                    'one:keyup document': 'handleKeyup'
                 },
-                play: function() {
-                    console.log(this.cid);
+
+                updateView: function() {
+                    // update logic
                 },
-                showSizeText: function() {
-                    this.$sizeText = this.$sizeText || $('<p>').addClass('attireTextType2').appendTo(this.$('.inner'));
-                    this.$sizeText.text('Current window size is ' + this.$window.outerWidth() + 'px.');
+
+                handleKeyup: function() {
+                    // some update logic
+                }
+            });
+        </code></pre>
+
+        <p class="attireTextType2">
+            Subclass and add sub views like so:
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            var MyViewSubClass = MyView.extend({
+                someExtraMethod: function(){
+                    this.addView(new MyAnotherView({$el: this.$('.subView')}))
                 }
             });
 
-            var TestClass2 = TestClass.extend({
+            var MyAnotherView = SimpleView.extend({
                 initialize: function() {
-
-                    var subView = this.addView(new TestClass({$el: '.testCase'}));
-
-                    this.listenTo(subView, 'afterRemove', function() {
-                        console.log('phew');
-                    });
-
-                    setTimeout(function() {
-                        subView.remove();
-                    }.bind(this), 1000);
-
-                },
-                play: function() {
-                    console.log(2, this.cid);
+                    // initializing logic
                 }
             });
 
-            console.log(new TestClass2({$el: '.testCase'}));
-
-        </script>
+            var view = new MyViewSubClass({$el: '.test'})
+            view.remove(); // will remove all attached sub views as well
+        </code></pre>
 
     </div>
 </section>

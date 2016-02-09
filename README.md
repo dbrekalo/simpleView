@@ -1,3 +1,6 @@
 #Simple view
-Lightweight javascript view component boilerplate.
-Docs for version 2.0 coming soon.
+Organize your application interface with lightweight javascript view components.
+Works pretty much like a augmented Backbone view with no large dependencies.
+Weighs around 1.5 KB.
+
+[Demo and documentation can be found here](http://dbrekalo.github.io/simpleView/)
