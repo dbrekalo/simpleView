@@ -21,11 +21,11 @@
                 events: {
                     'click .text': 'updateView',
                     'one:click .toggleBtn': function(e) { // one time events
-                        console.log($(e.target).text());
+                        // event handler logic
                     },
-                    'click {{this.options.titleSelector}}': 'play', // dynamic selector
+                    'click {{this.options.titleSelector}}': 'updateView', // dynamic selector
                     'resize window': 'updateView', // window events
-                    'one:keyup document': 'handleKeyup'
+                    'one:keyup document': 'handleKeyup' // document events
                 },
 
                 updateView: function() {
