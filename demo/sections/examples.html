@@ -27,10 +27,10 @@
                     this.$input = this.$('.entryInput');
                 },
                 events: {
-                    'submit form': 'handleSubmitEntry',
+                    'submit form': 'submitEntry',
                     'resize window': 'updateView',
                 },
-                handleSubmitEntry: function(e) {
+                submitEntry: function(e) {
                     e.preventDefault();
                     var message = this.$input.val();
                     message.length && this.addEntry(message);
@@ -71,21 +71,28 @@
 
             var guestbook = new Guestbook({$el: '.guestbook'});
 
-            guestbook.addEntry('Make your willy bigger. Money back guarantee. If it works.');
-            guestbook.addEntry('Dear Sir. I am leaving a mark here.');
-            guestbook.addEntry('Yeah i had sex with my girlfriend. So hot. Hungry now.');
-            guestbook.addEntry('My app is soo much better then this. Go see React. It is the only way to do frontend now');
+            var quotes = [
+                '"A programming language is low level when its programs require attention to the irrelevant."- Alan J. Perlis.',
+                '"I have always wished for my computer to be as easy to use as my telephone; my wish has come true because I can no longer figure out how to use my telephone."- Bjarne Stroustrup',
+                 '"The trouble with programmers is that you can never tell what a programmer is doing until it’s too late."- Seymour Cray',
+                 '"There are two ways of constructing a software design. One way is to make it so simple that there are obviously no deficiencies. And the other way is to make it so complicated that there are no obvious deficiencies."- C.A.R. Hoare'
+            ];
+
+            for (var i = 0; i < quotes.length; i++) {
+                guestbook.addEntry(quotes[i]);
+            }
 
         </script>
 
         <style>
             .guestbook {
-                padding: 2em;
-                background: #fff; box-shadow: 0 0.1em 0.3em rgba(0,0,0,0.1);
+                padding: 1em;
+                background: #fff; box-shadow: 0 0.3em 0.6em rgba(0,0,0,0.07);
+                border: 1px solid #dcdcdc; border-radius: 0.4em;
             }
             .guestbook > form {
                 position: relative; padding-right: 6em;
-                border: 1px solid #dcdcdc;
+                border: 1px solid #dcdcdc; border-radius: 0.3em;
             }
             .guestbook > form > input {
                 font-size: 1.8em; padding: 1em; display: block; width: 100%; box-sizing: border-box;
@@ -98,11 +105,11 @@
                 cursor: pointer; background: none; border-left: 1px solid #dcdcdc;
             }
             .guestbook > .entryList{
-                padding: 3em 2em 2em;
+                padding: 1em 1em 0;
             }
             .guestbookEntry {
                 display: block; position: relative;
-                font-size: 1.5em; line-height: 1.4; padding: 0.6em 3em 0.6em 0;
+                font-size: 1.6em; line-height: 1.5; padding: 1em 1.5em 1em 0;
                 border-bottom: 1px solid #ededed;
             }
             .guestbookEntry:last-child {
@@ -110,7 +117,7 @@
             }
             .guestbookEntry > .removeEntry {
                 font-size: 1.1em;
-                position: absolute; right: 0; top: 0.5em; margin: 0; padding: 0; border: 0;
+                position: absolute; right: 0; top: 0.9em; margin: 0; padding: 0; border: 0;
                 cursor: pointer; background: none; color: #999;
             }
         </style>
@@ -143,10 +150,10 @@
                     this.$input = this.$('.entryInput');
                 },
                 events: {
-                    'submit form': 'handleSubmitEntry',
+                    'submit form': 'submitEntry',
                     'resize window': 'updateView',
                 },
-                handleSubmitEntry: function(e) {
+                submitEntry: function(e) {
                     e.preventDefault();
                     var message = this.$input.val();
                     message.length && this.addEntry(message);
