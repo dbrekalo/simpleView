@@ -27,7 +27,7 @@ describe("SimpleView constructor", function() {
 
         var view = new BaseView();
         assert.instanceOf(view, BaseView);
-        assert.isDefined(view.cid);
+        assert.isString(view.cid);
 
     });
 
@@ -38,22 +38,6 @@ describe("SimpleView constructor", function() {
 
         assert.strictEqual(view1.$el, $el);
         assert.strictEqual(view2.$el.get(0), $el.get(0));
-
-    });
-
-    it('allows views to be extended', function() {
-
-        var View1 = BaseView.extend({});
-        var View2 = View1.extend({});
-
-        var view1 = new View1();
-        var view2 = new View2();
-
-        assert.instanceOf(view1, BaseView);
-        assert.instanceOf(view1, View1);
-        assert.instanceOf(view2, BaseView);
-        assert.instanceOf(view2, View1);
-        assert.instanceOf(view2, View2);
 
     });
 
@@ -96,7 +80,7 @@ describe("SimpleView constructor", function() {
 
 describe("SimpleView events", function() {
 
-    it('can be defined as function or pointer to type function', function() {
+    it('can be defined as function or pointer to view function', function() {
 
         var View = BaseView.extend({
             events: {
@@ -265,7 +249,6 @@ describe("SimpleView events", function() {
         assert.isTrue(view.windowIsResized);
         assert.isTrue(view.documentIsClicked);
 
-
     });
 
     it('can be removed and cleaned up', function() {
@@ -313,49 +296,116 @@ describe("SimpleView utilities", function() {
 
     });
 
+    it('provides addDeferred method for registerng deferreds', function() {
+
+        var view = new BaseView({$el: $el});
+        var deferred = $.Deferred();
+        var returnValue = view.addDeferred(deferred);
+
+        assert.equal(view.deferreds.length, 1);
+        assert.strictEqual(returnValue, deferred);
+
+    });
+
+    it('provides abortDeferreds method for canceling all pending deferreds', function() {
+
+        var view = new BaseView({$el: $el});
+        var deferred = $.Deferred();
+        var anotherDeferred = $.Deferred();
+
+        anotherDeferred.abort = function() {};
+
+        view.when([deferred, anotherDeferred, true, 5, {}], function() {
+            this.deferredsDone = true;
+        });
+
+        view.abortDeferreds();
+
+        deferred.resolve();
+
+        assert.isUndefined(view.deferredsDone);
+
+    });
+
+    describe('provides when method as $.when syntax sugar', function() {
+
+        it('accepts single deferred and done callback', function(done) {
+
+            var view = new BaseView({$el: $el});
+            var deferred = $.Deferred();
+
+            var returnValue = view.when(deferred, function() {
+                assert.strictEqual(this, view);
+                done();
+            });
+
+            assert.isFunction(returnValue.done);
+            deferred.resolve();
+
+        });
+
+        it('accepts array of deferreds and done callback', function(done) {
+
+            var view = new BaseView({$el: $el});
+            var deferred = $.Deferred();
+
+            view.when([deferred, true, 5, {}], function() {
+                assert.strictEqual(this, view);
+                done();
+            });
+
+            deferred.resolve();
+
+        });
+
+        it('accepts single deferred and fail callback', function(done) {
+
+            var view = new BaseView({$el: $el});
+            var deferred = $.Deferred();
+
+            view.when(deferred, undefined, function() {
+                assert.strictEqual(this, view);
+                done();
+            });
+
+            deferred.reject();
+
+        });
+
+    });
+
 });
 
 describe("SimpleView subviews", function() {
 
     it('can be added to parent registry', function() {
 
+        var ParentView = BaseView.extend({});
         var ChildView = BaseView.extend({});
 
-        var ParentView = BaseView.extend({
-            initialize: function() {
-                var childView = this.addView(new ChildView({$el: this.$('form')}));
-                assert.strictEqual(childView, this.views[childView.cid]);
-            }
-        });
+        var parentView = new ParentView({$el: $el});
+        var childView = parentView.addView(new ChildView({$el: parentView.$('form')}));
 
-        var view = new ParentView({$el: $el});
+        assert.strictEqual(childView, parentView.views[childView.cid]);
 
     });
 
     it('can be removed by parent', function() {
 
-        var ChildView = BaseView.extend({});
+        var parentView = new BaseView({$el: $el});
+        var childView = parentView.addView(new BaseView({$el: parentView.$('form')}));
 
-        var ParentView = BaseView.extend({
-            initialize: function() {
-                this.addView(new ChildView({$el: this.$('form')}));
-            }
-        });
+        parentView.removeViews();
 
-        var view = new ParentView({$el: $el});
-        view.removeViews();
-
-        assert.isUndefined(view.views);
+        assert.isUndefined(parentView.views);
 
     });
 
     it('can be removed by child remove call', function() {
 
-        var ChildView = BaseView.extend({});
-        var ParentView = BaseView.extend({});
+        var parentView = new BaseView({$el: $el});
+        var childView = parentView.addView(new BaseView({$el: parentView.$('form')}));
 
-        var parentView = new ParentView({$el: $el});
-        var childView = parentView.addView(new ChildView({$el: parentView.$('form')}));
         childView.remove();
 
         assert.isUndefined(parentView.views[childView.cid]);

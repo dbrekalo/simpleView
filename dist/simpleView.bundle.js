@@ -232,6 +232,7 @@
 
 (function(root, factory) {
 
+    /* istanbul ignore next */
     if (typeof define === 'function' && define.amd) {
         define(['type-factory', 'mitty', 'jquery'], factory);
     } else if (typeof module === 'object' && module.exports) {
