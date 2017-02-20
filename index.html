@@ -249,7 +249,7 @@
 
         <h2 class="attireTitleType2">Api and options</h2>
 
-        <h3 class="attireTitleType3">Simpleview.extend(prototypeProperties, [staticProperties])</h3>
+        <h3 class="attireTitleType3">SimpleView.extend(prototypeProperties, [staticProperties])</h3>
         <p class="attireTextType2">
             Used to define view types / constructor functions.
             Define prototype methods for view via object hash.
@@ -389,6 +389,21 @@
     <div class="inner">
 
         <h2 class="attireTitleType2">Installation</h2>
+
+        <p class="attireTextType2">
+            SimpleView is packaged as UMD library so you can use it in CommonJS and AMD environment or with browser globals.
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            // install via npm
+            npm install jquery-simple-view --save
+
+            // if you use bundler
+            var SimpleView = require('jquery-simple-view');
+
+            // or just using browser globals
+            var SimpleView = window.SimpleView;
+        </code></pre>
 
         <p class="attireTextType2">
             For browser usage browse dist folder - if working with build tools go with src folder.

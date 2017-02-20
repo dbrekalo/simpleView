@@ -32,22 +32,11 @@ module.exports = function(grunt) {
             }
         },
 
-        jshint: {
+        eslint: {
             options: {
-                'jshintrc': '.jshintrc'
+                configFile: '.eslintrc.js'
             },
-            all: ['src', 'Gruntfile.js']
-        },
-
-        jscs: {
-            options: {
-                config: '.jscsrc'
-            },
-            scripts: {
-                files: {
-                    src: ['src/**/*.js', 'Gruntfile.js']
-                }
-            }
+            target: ['src/**/*.js', 'Gruntfile.js', 'test/index.js']
         },
 
         concat: {
@@ -118,6 +107,6 @@ module.exports = function(grunt) {
     require('load-grunt-tasks')(grunt);
 
     grunt.registerTask('default', ['watch']);
-    grunt.registerTask('build', ['jshint', 'jscs', 'uglify', 'copy', 'concat', 'includereplace']);
+    grunt.registerTask('build', ['eslint', 'uglify', 'copy', 'concat', 'includereplace']);
 
 };

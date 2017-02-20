@@ -4,6 +4,21 @@
         <h2 class="attireTitleType2">Installation</h2>
 
         <p class="attireTextType2">
+            SimpleView is packaged as UMD library so you can use it in CommonJS and AMD environment or with browser globals.
+        </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            // install via npm
+            npm install {{ npmRepositoryName }} --save
+
+            // if you use bundler
+            var SimpleView = require('{{ npmRepositoryName }}');
+
+            // or just using browser globals
+            var SimpleView = window.SimpleView;
+        </code></pre>
+
+        <p class="attireTextType2">
             For browser usage browse dist folder - if working with build tools go with src folder.
             Download library files from <a href="{{ repositoryUrl }}">github repo</a>,
             get them via bower (bower install {{ bowerRepositoryName }})

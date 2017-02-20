@@ -394,7 +394,7 @@
                 self.addDeferred(resource);
             });
 
-            return $.when.apply(window, resources)
+            return $.when.apply($, resources)
                 .done($.proxy(callbackDone, this))
                 .fail($.proxy(callbackFail, this));
 

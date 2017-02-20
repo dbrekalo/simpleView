@@ -1,14 +1,10 @@
-var assert = require("chai").assert;
-var jsdom = require('jsdom').jsdom;
-
-var document = global.document = jsdom('<body></body>');
-var window = global.window = document.defaultView;
-
+var assert = require('chai').assert;
 var $ = require('jquery');
-var BaseView = require("../");
+var BaseView = require('../');
+
 var $el;
 
-beforeEach(function () {
+beforeEach(function() {
     $('body').html(
         '<div class="guestbook">' +
             '<form>' +
@@ -21,7 +17,7 @@ beforeEach(function () {
     $el = $('.guestbook');
 });
 
-describe("SimpleView constructor", function() {
+describe('SimpleView constructor', function() {
 
     it('produces instance and assigns client id property', function() {
 
@@ -78,9 +74,9 @@ describe("SimpleView constructor", function() {
 
 });
 
-describe("SimpleView events", function() {
+describe('SimpleView events', function() {
 
-    it('can be defined as function or pointer to view function', function() {
+    it('can be defined as function or pointer to view function', function(done) {
 
         var View = BaseView.extend({
             events: {
@@ -89,7 +85,8 @@ describe("SimpleView events", function() {
                     this.formIsClicked = true;
                 },
             },
-            submitForm: function() {
+            submitForm: function(e) {
+                e.preventDefault();
                 this.formIsSubmited = true;
             }
         });
@@ -98,18 +95,22 @@ describe("SimpleView events", function() {
 
         $el.find('form').trigger('submit').trigger('click');
 
-        assert.isTrue(view.formIsSubmited);
-        assert.isTrue(view.formIsClicked);
+        setTimeout(function() {
+            assert.isTrue(view.formIsSubmited);
+            assert.isTrue(view.formIsClicked);
+            done();
+        }, 100);
 
     });
 
-    it('can be defined from hash produced by function', function() {
+    it('can be defined from hash produced by function', function(done) {
 
         var View = BaseView.extend({
             events: function() {
                 return {'submit form': 'submitForm'};
             },
             submitForm: function(e) {
+                e.preventDefault();
                 this.formIsSubmited = true;
             }
         });
@@ -118,37 +119,46 @@ describe("SimpleView events", function() {
 
         $el.find('form').trigger('submit');
 
-        assert.isTrue(view.formIsSubmited);
+        setTimeout(function() {
+            assert.isTrue(view.formIsSubmited);
+            done();
+        }, 100);
 
     });
 
-    it('can be defined as one time events', function() {
+    it('can be defined as one time events', function(done) {
+
+        var clickCounter = 0;
 
         var View = BaseView.extend({
             events: {
-                'one:submit form': function(e) {
-                    this.formSubmitCounter = this.formSubmitCounter || 0;
-                    this.formSubmitCounter++;
+                'one:click form': function(e) {
+                    e.preventDefault();
+                    clickCounter++;
                 }
             }
         });
 
-        var view = new View({$el: $el});
+        new View({$el: $el});
 
-        $el.find('form').trigger('submit').trigger('submit').trigger('submit');
+        $el.find('form').trigger('click').trigger('click').trigger('click');
 
-        assert.equal(view.formSubmitCounter, 1);
+        setTimeout(function() {
+            assert.equal(clickCounter, 1);
+            done();
+        }, 100);
 
     });
 
-    it('can be defined with injected instance variables', function() {
+    it('can be defined with injected instance variables', function(done) {
 
         var View = BaseView.extend({
             initialize: function() {
                 this.formSelector = 'form';
             },
             events: {
-                'submit {{this.formSelector}}': function() {
+                'submit {{this.formSelector}}': function(e) {
+                    e.preventDefault();
                     this.formIsSubmited = true;
                 }
             }
@@ -158,7 +168,10 @@ describe("SimpleView events", function() {
 
         $el.find('form').trigger('submit');
 
-        assert.isTrue(view.formIsSubmited);
+        setTimeout(function() {
+            assert.isTrue(view.formIsSubmited);
+            done();
+        }, 100);
 
     });
 
@@ -168,7 +181,8 @@ describe("SimpleView events", function() {
 
         var View = BaseView.extend({
             events: {
-                'submit {{formSelector}}': function() {
+                'submit {{formSelector}}': function(e) {
+                    e.preventDefault();
                     this.formIsSubmited = true;
                 }
             }
@@ -180,9 +194,10 @@ describe("SimpleView events", function() {
 
         window.formSelector = undefined;
 
-        assert.isTrue(view.formIsSubmited);
-
-        done();
+        setTimeout(function() {
+            assert.isTrue(view.formIsSubmited);
+            done();
+        }, 100);
 
     });
 
@@ -201,11 +216,11 @@ describe("SimpleView events", function() {
         });
 
         assert.throws(function() {
-            var view = new View1({$el: $el});
+            new View1({$el: $el});
         });
 
         assert.throws(function() {
-            var view = new View2({$el: $el});
+            new View2({$el: $el});
         });
 
     });
@@ -216,19 +231,20 @@ describe("SimpleView events", function() {
             delegatedEvents: false,
             events: {
                 'submit form': function(e) {
+                    e.preventDefault();
                     assert.strictEqual(e.delegateTarget, $el.find('form').get(0));
                     done();
                 }
             }
         });
 
-        var view = new View({$el: $el});
+        new View({$el: $el});
 
         $el.find('form').trigger('submit');
 
     });
 
-    it('are properly handled when called with special selectors (window or document)', function() {
+    it('are properly handled when called with special selectors (window or document)', function(done) {
 
         var View = BaseView.extend({
             events: {
@@ -246,18 +262,22 @@ describe("SimpleView events", function() {
         $(document).trigger('click');
         $(window).trigger('resize');
 
-        assert.isTrue(view.windowIsResized);
-        assert.isTrue(view.documentIsClicked);
+        setTimeout(function() {
+            assert.isTrue(view.windowIsResized);
+            assert.isTrue(view.documentIsClicked);
+            done();
+        }, 100);
 
     });
 
-    it('can be removed and cleaned up', function() {
+    it('can be removed and cleaned up', function(done) {
 
         var View = BaseView.extend({
             delegatedEvents: false,
             events: {
-                'submit form': function() {
-                    this.formIsSubmited = true;
+                'click form': function(e) {
+                    e.preventDefault();
+                    this.formIsClicked = true;
                 },
                 'resize window': function(e) {
                     this.windowIsResized = true;
@@ -272,19 +292,22 @@ describe("SimpleView events", function() {
 
         view.removeEvents();
 
-        $el.find('form').trigger('submit');
+        $el.find('form').trigger('click');
         $(document).trigger('click');
         $(window).trigger('resize');
 
-        assert.isUndefined(view.formIsSubmited);
-        assert.isUndefined(view.windowIsResized);
-        assert.isUndefined(view.documentIsClicked);
+        setTimeout(function() {
+            assert.isUndefined(view.formIsClicked);
+            assert.isUndefined(view.windowIsResized);
+            assert.isUndefined(view.documentIsClicked);
+            done();
+        }, 100);
 
     });
 
 });
 
-describe("SimpleView utilities", function() {
+describe('SimpleView utilities', function() {
 
     it('uses $ as alias for view element find', function() {
 
@@ -296,7 +319,7 @@ describe("SimpleView utilities", function() {
 
     });
 
-    it('provides addDeferred method for registerng deferreds', function() {
+    it('provides addDeferred method for registering deferreds', function() {
 
         var view = new BaseView({$el: $el});
         var deferred = $.Deferred();
@@ -376,7 +399,7 @@ describe("SimpleView utilities", function() {
 
 });
 
-describe("SimpleView subviews", function() {
+describe('SimpleView subviews', function() {
 
     it('can be added to parent registry', function() {
 
@@ -393,8 +416,8 @@ describe("SimpleView subviews", function() {
     it('can be removed by parent', function() {
 
         var parentView = new BaseView({$el: $el});
-        var childView = parentView.addView(new BaseView({$el: parentView.$('form')}));
 
+        parentView.addView(new BaseView({$el: parentView.$('form')}));
         parentView.removeViews();
 
         assert.isUndefined(parentView.views);
