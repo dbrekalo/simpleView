@@ -22,26 +22,18 @@
 
         <script>
             var Guestbook = SimpleView.extend({
-                initialize: function() {
-                    this.$entryList = this.$('.entryList');
-                    this.$input = this.$('.entryInput');
-                },
                 events: {
-                    'submit form': 'submitEntry',
-                    'resize window': 'updateView',
+                    'submit form': 'submitEntry'
                 },
                 submitEntry: function(e) {
                     e.preventDefault();
-                    var message = this.$input.val();
+                    var message = this.$('.entryInput').val();
                     message.length && this.addEntry(message);
-                    this.$input.val('');
+                    this.$('.entryInput').val('');
                 },
                 addEntry: function(message) {
                     var entryView = this.addView(new GuestbookEntry({message: message}));
-                    entryView.$el.prependTo(this.$entryList);
-                },
-                updateView: function() {
-                    this.$el.toggleClass('small', this.$window.width() < 500);
+                    entryView.$el.prependTo(this.$('.entryList'));
                 }
             });
 
@@ -55,17 +47,13 @@
                     this.$el = $(this.template(this.options));
                 },
                 events: {
-                    'click .{{this.options.btnRemoveClass}}': 'remove',
-                    'one:click .message': 'clickMessage'
+                    'click .{{this.options.btnRemoveClass}}': 'remove'
                 },
                 template: function(data) {
                     return '<div class="' + data.className + '">\
                                 <span class="message">' + data.message + '</span>\
                                 <button class="' + data.btnRemoveClass + '">×</button>\
                             </div>';
-                },
-                clickMessage: function(e) {
-                    console.log($(e.target).text());
                 }
             });
 
@@ -145,26 +133,19 @@
 
         <pre class="attireCodeHighlight"><code class="language-javascript">
             var Guestbook = SimpleView.extend({
-                initialize: function() {
-                    this.$entryList = this.$('.entryList');
-                    this.$input = this.$('.entryInput');
-                },
                 events: {
-                    'submit form': 'submitEntry',
-                    'resize window': 'updateView',
+                    'submit form': 'submitEntry'
                 },
                 submitEntry: function(e) {
                     e.preventDefault();
-                    var message = this.$input.val();
+                    var $input = this.$('.entryInput');
+                    var message = $input.val();
                     message.length && this.addEntry(message);
-                    this.$input.val('');
+                    $input.val('');
                 },
                 addEntry: function(message) {
                     var entryView = this.addView(new GuestbookEntry({message: message}));
-                    entryView.$el.prependTo(this.$entryList);
-                },
-                updateView: function() {
-                    this.$el.toggleClass('small', this.$window.width() < 500);
+                    entryView.$el.prependTo(this.$('.entryList'));
                 }
             });
 
@@ -188,17 +169,13 @@
                     this.$el = $(this.template(this.options));
                 },
                 events: {
-                    'click .{{this.options.btnRemoveClass}}': 'remove',
-                    'one:click .message': 'clickMessage'
+                    'click .{{this.options.btnRemoveClass}}': 'remove'
                 },
                 template: function(data) {
                     return '&#x3C;div class=&#x22;&#x27; + data.className + &#x27;&#x22;&#x3E;\
                                 &#x3C;span class=&#x22;message&#x22;&#x3E;&#x27; + data.message + &#x27;&#x3C;/span&#x3E;\
                                 &#x3C;button class=&#x22;&#x27; + data.btnRemoveClass + &#x27;&#x22;&#x3E;&#xD7;&#x3C;/button&#x3E;\
                             &#x3C;/div&#x3E;';
-                },
-                clickMessage: function(e) {
-                    console.log($(e.target).text());
                 }
             });
         </code></pre>

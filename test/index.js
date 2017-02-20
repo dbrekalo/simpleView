@@ -412,4 +412,75 @@ describe("SimpleView subviews", function() {
 
     });
 
+    it('maps single view and returns instance', function() {
+
+        var ParentView = BaseView.extend({});
+        var ChildView = BaseView.extend({
+            initialize: function(options) {
+                this.options = options;
+            }
+        });
+
+        var parentView = new ParentView({$el: $el});
+        var childOptions = {test: true};
+
+        var childView = parentView.mapView('form', ChildView, childOptions);
+        var undefinedChildView = parentView.mapView($('.undefinedClass'), ChildView);
+
+        assert.deepEqual(childView.options, childOptions);
+        assert.isTrue(childView.$el.is('form'));
+        assert.strictEqual(childView, parentView.views[childView.cid]);
+        assert.isUndefined(undefinedChildView);
+
+    });
+
+    it('maps multiple views and returns view instances as array', function() {
+
+        var ParentView = BaseView.extend({});
+        var ChildView = BaseView.extend({
+            initialize: function(options) {
+                this.options = options;
+            }
+        });
+
+        var parentView = new ParentView({$el: $el});
+        var childOptions = {test: true};
+        var childViews = parentView.mapViews('form', ChildView, childOptions);
+        var undefinedChildViews = parentView.mapViews($('.undefinedClass'), ChildView, childOptions);
+
+        assert.deepEqual(childViews[0].options, childOptions);
+        assert.strictEqual(childViews[0], parentView.views[childViews[0].cid]);
+        assert.lengthOf(undefinedChildViews, 0);
+
+    });
+
+    it('maps multiple views with async view provider', function(done) {
+
+        var ParentView = BaseView.extend({});
+        var ChildView = BaseView.extend({
+            initialize: function(options) {
+                this.options = options;
+            }
+        });
+
+        var parentView = new ParentView({$el: $el});
+
+        var firstDeferred = parentView.mapViewsAsync('form', function(viewProvider) {
+            viewProvider(ChildView);
+        }).done(function(childViews) {
+            assert.strictEqual(childViews[0], parentView.views[childViews[0].cid]);
+        });
+
+        var secondDeferred = parentView.mapViewsAsync($('.undefinedClass'), function(viewProvider) {
+            viewProvider(ChildView);
+        }).done(function(childViews) {
+            assert.lengthOf(childViews, 0);
+        });
+
+        $.when(firstDeferred, secondDeferred).done(function() {
+            done();
+        });
+
+    });
+
 });

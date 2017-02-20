@@ -52,6 +52,28 @@
 
         <hr class="attireSeparator mod1">
 
+        <h3 class="attireTitleType3">mapView(selector, View, [params])</h3>
+        <p class="attireTextType2">
+            Create View instance with first element inside current view found via selector. Returns mapped instance.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+        <h3 class="attireTitleType3">mapViews(selector, View, [params])</h3>
+        <p class="attireTextType2">
+            Map View instances to all elements inside current view found via selector. Returns mapped instances array;
+        </p>
+
+        <hr class="attireSeparator mod1">
+
+        <h3 class="attireTitleType3">mapViewsAsync(selector, viewProvider, [params])</h3>
+        <p class="attireTextType2">
+            Map instances to all elements inside view found via selector with View constructor provided via viewProvider.
+            Returns Deferred object that resolves with mapped instances array.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
         <h3 class="attireTitleType3">removeViews()</h3>
         <p class="attireTextType2">
             Removes all registered sub views.

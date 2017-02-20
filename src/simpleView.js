@@ -181,6 +181,45 @@
 
         },
 
+        mapView: function(selector, View, params) {
+
+            var $el = (typeof selector === 'string' ? this.$(selector) : $(selector)).eq(0);
+
+            return $el.length ? this.addView(new View($.extend({$el: $el}, params))) : undefined;
+
+        },
+
+        mapViews: function(selector, View, params) {
+
+            var self = this;
+            var $elements = typeof selector === 'string' ? this.$(selector) : $(selector);
+
+            return $elements.map(function(i, el) {
+
+                return self.addView(new View($.extend({$el: $(el)}, params)));
+
+            }).get();
+
+        },
+
+        mapViewsAsync: function(selector, viewProvider, params) {
+
+            var self = this;
+            var deferred = $.Deferred();
+            var $elements = typeof selector === 'string' ? this.$(selector) : $(selector);
+
+            if ($elements.length) {
+                viewProvider(function(View) {
+                    deferred.resolve(self.mapViews($elements, View, params));
+                });
+            } else {
+                deferred.resolve([]);
+            }
+
+            return deferred;
+
+        },
+
         removeViews: function() {
 
             this.views && $.each(this.views, function(id, view) {

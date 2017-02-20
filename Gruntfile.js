@@ -53,16 +53,16 @@ module.exports = function(grunt) {
         concat: {
             bundle: {
                 src: [
-                    'bower_components/type-factory/dist/typeFactory.js',
-                    'bower_components/mitty/dist/mitty.js',
+                    'node_modules/type-factory/dist/typeFactory.js',
+                    'node_modules/mitty/dist/mitty.js',
                     'dist/simpleView.js'
                 ],
                 dest: 'dist/simpleView.bundle.js'
             },
             bundleMin: {
                 src: [
-                    'bower_components/type-factory/dist/typeFactory.min.js',
-                    'bower_components/mitty/dist/mitty.min.js',
+                    'node_modules/type-factory/dist/typeFactory.min.js',
+                    'node_modules/mitty/dist/mitty.min.js',
                     'dist/simpleView.min.js'
                 ],
                 dest: 'dist/simpleView.bundle.min.js'
