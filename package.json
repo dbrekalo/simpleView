@@ -9,7 +9,7 @@
     "url": "https://github.com/dbrekalo/simpleView"
   },
   "scripts": {
-    "watch": "grunt",
+    "watch": "grunt build && grunt",
     "build": "grunt build",
     "watch:test": "node ./node_modules/karma/bin/karma start --browsers PhantomJS",
     "test": "node ./node_modules/karma/bin/karma start --single-run --browsers PhantomJS",

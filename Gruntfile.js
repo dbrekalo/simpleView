@@ -78,7 +78,7 @@ module.exports = function(grunt) {
             jsFiles: {
                 expand: true,
                 files: ['src/**/*.js', 'Gruntfile.js'],
-                tasks: ['jshint', 'jscs', 'copy', 'uglify', 'concat'],
+                tasks: ['eslint', 'uglify', 'copy', 'concat'],
                 options: {
                     spawn: false
                 }
