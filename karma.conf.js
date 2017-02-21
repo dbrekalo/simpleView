@@ -1,40 +1,40 @@
+var path = require('path');
+var webpack = require('webpack');
+
 module.exports = function(config) {
   config.set({
 
-    files: [
-      'test/index.js'
-    ],
+    files: ['test/index.js'],
+
+    preprocessors: {
+      'test/index.js': ['webpack', 'sourcemap']
+    },
 
     frameworks: ['mocha'],
 
-    preprocessors: {
-      'test/index.js': ['webpack']
-    },
+    reporters: ['spec', 'coverage-istanbul'],
 
-    reporters: ['spec', 'coverage'],
-
-    coverageReporter: {
-
-      dir: 'coverage/',
-      reporters: [
-          { type: 'html' },
-          { type: 'text' },
-          { type: 'lcov', subdir: 'lcov' },
-          { type: 'text-summary' }
-      ]
+    coverageIstanbulReporter: {
+      reports: ['html', 'lcov', 'text-summary'],
+      dir: './coverage',
+      fixWebpackSourcePaths: true
     },
 
     webpack: {
       module: {
-        postLoaders: [{
-          test: /\.js/,
-          exclude: /(test|node_modules|bower_components)/,
-          loader: 'istanbul-instrumenter'
-        }]
-      }
+        rules: [
+            {
+              test: /\.js$/,
+              include: path.resolve('src/'),
+              loader: 'istanbul-instrumenter-loader'
+            }
+        ]
+      },
+      devtool: 'inline-source-map'
     },
 
     webpackMiddleware: {
+      stats: 'errors-only',
       noInfo: true
     },
 
@@ -44,12 +44,13 @@ module.exports = function(config) {
 
     plugins: [
       require("karma-webpack"),
-      require("istanbul-instrumenter-loader"),
+      require("karma-coverage-istanbul-reporter"),
+      require("karma-spec-reporter"),
       require("karma-mocha"),
-      require("karma-coverage"),
       require("karma-chrome-launcher"),
       require("karma-phantomjs-launcher"),
-      require("karma-spec-reporter")
+      require("karma-sourcemap-loader"),
+      require("istanbul-instrumenter-loader")
     ],
 
     browsers: ['Chrome', 'PhantomJS']
