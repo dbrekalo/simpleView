@@ -37,6 +37,35 @@ describe('SimpleView constructor', function() {
 
     });
 
+    it('assigns defaults to options', function() {
+
+        var View = BaseView.extend({
+            assignOptions: true,
+            defaults: {test: true}
+        });
+
+        var view = new View({$el: $el});
+
+        assert.deepEqual(view.options, {test: true});
+
+    });
+
+    it('assigns deep extended options', function() {
+
+        var View = BaseView.extend({
+            assignOptions: 'deep',
+            defaults: {tree: {branch: {leaf1: true}}}
+        });
+
+        var view = new View({
+            $el: $el,
+            tree: {branch: {leaf2: false}}
+        });
+
+        assert.deepEqual(view.options, {tree: {branch: {leaf1: true, leaf2: false}}});
+
+    });
+
     it('calls initialize when view is created, passes arguments and removes $el reference', function() {
 
         var View = BaseView.extend({

@@ -37,6 +37,7 @@
     var View = typeFactory({
 
         delegatedEvents: true,
+        assignOptions: false,
 
         constructor: function(options) {
 
@@ -45,6 +46,10 @@
             if (options && options.$el) {
                 this.$el = options.$el instanceof $ ? options.$el : $(options.$el).eq(0);
                 delete options.$el;
+            }
+
+            if (this.assignOptions) {
+                this.options = this.assignOptions === 'deep' ? $.extend(true, {}, this.defaults, options) : $.extend({}, this.defaults, options);
             }
 
             this.beforeInitialize && this.beforeInitialize.apply(this, arguments);

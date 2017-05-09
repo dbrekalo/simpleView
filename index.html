@@ -101,12 +101,12 @@
                 });
 
                 var GuestbookEntry = SimpleView.extend({
+                    assignOptions: true,
                     defaults: {
                         className: 'guestbookEntry',
                         btnRemoveClass: 'removeEntry'
                     },
                     initialize: function(options) {
-                        this.options = $.extend({}, this.defaults, options);
                         this.$el = $(this.template(this.options));
                     },
                     events: {
@@ -224,12 +224,12 @@
 
         <pre class="attireCodeHighlight"><code class="language-javascript">
             var GuestbookEntry = SimpleView.extend({
+                assignOptions: true,
                 defaults: {
                     className: 'guestbookEntry',
                     btnRemoveClass: 'removeEntry'
                 },
                 initialize: function(options) {
-                    this.options = $.extend({}, this.defaults, options);
                     this.$el = $(this.template(this.options));
                 },
                 events: {
