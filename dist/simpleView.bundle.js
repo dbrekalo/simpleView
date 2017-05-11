@@ -281,7 +281,8 @@
             }
 
             if (this.assignOptions) {
-                this.options = this.assignOptions === 'deep' ? $.extend(true, {}, this.defaults, options) : $.extend({}, this.defaults, options);
+                var defaults = typeof this.defaults === 'function' ? this.defaults() : this.defaults;
+                this.options = this.assignOptions === 'deep' ? $.extend(true, {}, defaults, options) : $.extend({}, defaults, options);
             }
 
             this.beforeInitialize && this.beforeInitialize.apply(this, arguments);
@@ -342,9 +343,58 @@
                     $.each(this.elementsWithBoundEvents, function(i, el) {
                         $(el).off(eventNamespace);
                     });
-                    this.elementsWithBoundEvents = null;
+                    delete this.elementsWithBoundEvents;
                 }
 
+                delete this.dismissListeners;
+
+            }
+
+            return this;
+
+        },
+
+        addDismissListener: function(listenerName, options) {
+
+            var self = this;
+
+            if (!listenerName) {
+                throw new Error('Dismiss listener name not speficied');
+            }
+
+            options = $.extend({$el: this.$el}, options);
+
+            this.$document = this.$document || $(document);
+            this.ens = this.ens || '.' + this.cid;
+            this.dismissListeners = this.dismissListeners || {};
+
+            if (!this.dismissListeners[listenerName]) {
+
+                this.dismissListeners[listenerName] = function(e) {
+
+                    if (e.keyCode === 27 || (!$(e.target).is(options.$el) && !$.contains(options.$el.get(0), e.target))) {
+                        self[listenerName].call(self);
+                    }
+
+                };
+
+                this.$document.on('click' + this.ens + ' keyup' + this.ens, this.dismissListeners[listenerName]);
+
+            }
+
+            return this;
+
+        },
+
+        removeDismissListener: function(listenerName) {
+
+            if (!listenerName) {
+                throw new Error('Name of dismiss listener to remove not specified');
+            }
+
+            if (this.dismissListeners && this.dismissListeners[listenerName]) {
+                this.$document.off('click keyup', this.dismissListeners[listenerName]);
+                delete this.dismissListeners[listenerName];
             }
 
             return this;

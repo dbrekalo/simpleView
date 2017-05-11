@@ -50,6 +50,21 @@ describe('SimpleView constructor', function() {
 
     });
 
+    it('assigns defaults defined via function to options', function() {
+
+        var View = BaseView.extend({
+            assignOptions: true,
+            defaults: function() {
+                return {test: true};
+            }
+        });
+
+        var view = new View({$el: $el});
+
+        assert.deepEqual(view.options, {test: true});
+
+    });
+
     it('assigns deep extended options', function() {
 
         var View = BaseView.extend({
@@ -296,6 +311,109 @@ describe('SimpleView events', function() {
             assert.isTrue(view.documentIsClicked);
             done();
         }, 100);
+
+    });
+
+    it('executes dismiss listener when clicked outside view', function(done) {
+
+        var View = BaseView.extend({
+            open: function() {
+                this.isOpened = true;
+                return this.addDismissListener('close');
+            },
+            close: function() {
+                this.isOpened = false;
+                this.timesClosed = this.timesClosed || 0;
+                this.timesClosed++;
+                this.removeDismissListener('close');
+            }
+        });
+
+        var view = new View({$el: $el}).open();
+
+        $(document).trigger('click').trigger('click').trigger('click');
+
+        setTimeout(function() {
+            assert.strictEqual(view.isOpened, false);
+            assert.strictEqual(view.timesClosed, 1);
+            done();
+        }, 100);
+
+    });
+
+    it('executes dismiss listener with custom element container defined', function(done) {
+
+        var View = BaseView.extend({
+            open: function() {
+                this.isOpened = true;
+                this.addDismissListener('close', {$el: this.$('form')});
+                return this;
+            },
+            close: function() {
+                this.isOpened = false;
+                this.removeDismissListener('close');
+            }
+        });
+
+        var view = new View({$el: $el}).open();
+
+        view.$el.trigger('click');
+
+        setTimeout(function() {
+            assert.strictEqual(view.isOpened, false);
+            done();
+        }, 100);
+
+    });
+
+    it('executes dismiss listener on escape key', function(done) {
+
+        var View = BaseView.extend({
+            openMenu: function() {
+                this.isOpened = true;
+                return this.addDismissListener('closeMenu');
+            },
+            closeMenu: function() {
+                this.isOpened = false;
+                this.removeDismissListener('closeMenu');
+            }
+        });
+
+        var view = new View({$el: $el}).openMenu();
+
+        var e = $.Event('keyup');
+        e.which = e.keyCode = 27;
+        $(document).trigger(e);
+
+        setTimeout(function() {
+            assert.strictEqual(view.isOpened, false);
+            done();
+        }, 100);
+
+    });
+
+    it('dismiss listener throws error when callback name is not specified', function() {
+
+        var View = BaseView.extend({
+            open: function() {
+                this.isOpened = true;
+                return this.addDismissListener();
+            },
+            close: function() {
+                this.isOpened = false;
+                this.removeDismissListener();
+            }
+        });
+
+        var view = new View({$el: $el});
+
+        assert.throws(function() {
+            view.open();
+        });
+
+        assert.throws(function() {
+            view.close();
+        });
 
     });
 
