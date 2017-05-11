@@ -1,6 +1,6 @@
 {
   "name": "jquery-simple-view",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "description": "Lightweight javascript view component boilerplate",
   "main": "src/simpleView.js",
   "license": "MIT",
