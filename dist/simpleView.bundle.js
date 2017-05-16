@@ -243,32 +243,38 @@
 
 }(this, function(typeFactory, mitty, $) {
 
-    var viewCounter = 0,
-        variableInEventStringRE = /{{(\S+)}}/g,
-        parseEventString = function(eventString, context) {
+    var viewCounter = 0;
+    var variableInEventStringRE = /{{(\S+)}}/g;
+    var parseEventVariables = function(eventString, context) {
 
-            return eventString.replace(variableInEventStringRE, function(match, namespace) {
+        return eventString.replace(variableInEventStringRE, function(match, namespace) {
 
-                var isInCurrentContext = namespace.indexOf('this.') === 0,
-                    current = isInCurrentContext ? context : window,
-                    pieces = (isInCurrentContext ? namespace.slice(5) : namespace).split('.');
+            var isInCurrentContext = namespace.indexOf('this.') === 0;
+            var current = isInCurrentContext ? context : window;
+            var pieces = (isInCurrentContext ? namespace.slice(5) : namespace).split('.');
 
-                for (var i in pieces) {
-                    current = current[pieces[i]];
-                    if (typeof current === 'undefined') {
-                        throw new Error('Undefined variable in event string');
-                    }
+            for (var i in pieces) {
+                current = current[pieces[i]];
+                if (typeof current === 'undefined') {
+                    throw new Error('Undefined variable in event string');
                 }
+            }
 
-                return current;
+            return current;
 
-            });
+        });
 
-        };
+    };
+
+    var specialSelectors = {
+        'document': window.document,
+        'window': window
+    };
 
     var View = typeFactory({
 
         delegatedEvents: true,
+        parseEventVariables: true,
         assignOptions: false,
 
         constructor: function(options) {
@@ -292,38 +298,43 @@
 
         },
 
-        setupEvents: function() {
+        setupEvents: function(eventsMap) {
 
-            var eventNamespace = this.ens = this.ens || '.' + this.cid,
-                self = this,
-                specialSelectors = {
-                    'document': window.document,
-                    'window': window
-                };
+            var eventsProvider = eventsMap || this.events;
+            var eventList = typeof eventsProvider === 'function' ? eventsProvider.call(this) : eventsProvider;
+            var self = this;
 
-            $.each(typeof this.events === 'function' ? this.events() : this.events, function(eventString, handler) {
+            if (eventList) {
 
-                eventString = parseEventString(eventString, self);
+                var eventNamespace = this.ens = this.ens || '.' + this.cid;
 
-                var isOneEvent = eventString.indexOf('one:') === 0,
-                    splitEventString = (isOneEvent ? eventString.slice(4) : eventString).split(' '),
-                    eventName = splitEventString[0] + eventNamespace,
-                    eventSelector = splitEventString.slice(1).join(' '),
-                    $el = self.$el;
+                $.each(eventList, function(eventString, handler) {
 
-                if (specialSelectors[eventSelector]) {
-                    $el = self['$' + eventSelector] = self['$' + eventSelector] || $(specialSelectors[eventSelector]);
-                    eventSelector = undefined;
-                } else if (!self.delegatedEvents) {
-                    (self.elementsWithBoundEvents = self.elementsWithBoundEvents || []).push($el = $el.find(eventSelector));
-                    eventSelector = undefined;
-                }
+                    if (self.parseEventVariables) {
+                        eventString = parseEventVariables(eventString, self);
+                    }
 
-                $el[isOneEvent ? 'one' : 'on'](eventName, eventSelector, function() {
-                    (typeof handler === 'function' ? handler : self[handler]).apply(self, arguments);
+                    var isOneEvent = eventString.indexOf('one:') === 0;
+                    var splitEventString = (isOneEvent ? eventString.slice(4) : eventString).split(' ');
+                    var eventName = splitEventString[0] + eventNamespace;
+                    var eventSelector = splitEventString.slice(1).join(' ');
+                    var $el = self.$el;
+
+                    if (specialSelectors[eventSelector]) {
+                        $el = self['$' + eventSelector] = self['$' + eventSelector] || $(specialSelectors[eventSelector]);
+                        eventSelector = undefined;
+                    } else if (!self.delegatedEvents) {
+                        (self.elementsWithBoundEvents = self.elementsWithBoundEvents || []).push($el = $el.find(eventSelector));
+                        eventSelector = undefined;
+                    }
+
+                    $el[isOneEvent ? 'one' : 'on'](eventName, eventSelector, function() {
+                        (typeof handler === 'function' ? handler : self[handler]).apply(self, arguments);
+                    });
+
                 });
 
-            });
+            }
 
             return this;
 
