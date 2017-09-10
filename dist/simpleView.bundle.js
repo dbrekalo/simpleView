@@ -10,24 +10,98 @@
 
 }(this, function() {
 
-    function transferProperties(destination, source) {
+    function each(obj, callback) {
 
-        for (var key in source) {
-            source.hasOwnProperty(key) && (destination[key] = source[key]);
+        for (var key in obj) {
+            obj.hasOwnProperty(key) && callback(obj[key], key);
         }
-
-        return destination;
 
     }
 
+    function transferProperties(out) {
+
+        for (var i = 1; i < arguments.length; i++) {
+
+            each(arguments[i], function(value, key) {
+                typeof value !== 'undefined' && (out[key] = value);
+            });
+
+        }
+
+        return out;
+
+    }
+
+    var optionsApi = {
+
+        writeOptions: function(options) {
+
+            var defaults = typeof this.defaults === 'function' ? this.defaults() : this.defaults;
+            var ruleDefaults = {};
+
+            this.optionRules && each(this.optionRules, function(data, optionName) {
+                ruleDefaults[optionName] = data.default;
+            });
+
+            this.options = transferProperties({}, defaults, ruleDefaults, options);
+
+        },
+
+        validateOptions: function(options, rules) {
+
+            var errors = [];
+
+            each(rules, function(data, optionName) {
+
+                var optionValue = options[optionName];
+                var optionValueType = typeof optionValue;
+
+                if (data.required !== false || optionValueType !== 'undefined') {
+
+                    if (data.type && optionValueType !== data.type) {
+                        errors.push('Option "' + optionName +'" is ' + optionValueType + ', expected ' + data.type + '.');
+                    }
+
+                    if (data.rule && !data.rule(optionValue)) {
+                        errors.push('Option "' + optionName +'" breaks defined rule.');
+                    }
+
+                    if (data.instanceOf && !(optionValue instanceof data.instanceOf)) {
+                        errors.push('Option "' + optionName +'" is not instance of defined constructor.');
+                    }
+
+                }
+
+            });
+
+            if (errors.length) {
+                throw new Error(errors.join(' '));
+            } else {
+                return this;
+            }
+
+        }
+
+    };
+
     function factory(parentType, prototypeProperties, staticProperties) {
+
+        prototypeProperties = prototypeProperties || {};
 
         var generatedType = prototypeProperties.hasOwnProperty('constructor') ? prototypeProperties.constructor : function() {
 
             if (parentType) {
+
                 parentType.apply(this, arguments);
+
             } else {
+
+                if (this.assignOptions) {
+                    this.writeOptions.apply(this, arguments);
+                    this.optionRules && this.validateOptions(this.options, this.optionRules);
+                }
                 this.initialize && this.initialize.apply(this, arguments);
+
             }
 
         };
@@ -39,10 +113,15 @@
             generatedType.prototype = new Surrogate();
 
             transferProperties(generatedType, parentType);
+
+        } else {
+
+            transferProperties(prototypeProperties, optionsApi);
+
         }
 
         staticProperties && transferProperties(generatedType, staticProperties);
-        prototypeProperties && transferProperties(generatedType.prototype, prototypeProperties);
+        transferProperties(generatedType.prototype, prototypeProperties);
 
         return generatedType;
 
@@ -244,14 +323,13 @@
 }(this, function(typeFactory, mitty, $) {
 
     var viewCounter = 0;
-    var variableInEventStringRE = /{{(\S+)}}/g;
+    var variableInEventStringRE = /{{\s*(\S+)\s*}}/g;
     var parseEventVariables = function(eventString, context) {
 
         return eventString.replace(variableInEventStringRE, function(match, namespace) {
 
-            var isInCurrentContext = namespace.indexOf('this.') === 0;
-            var current = isInCurrentContext ? context : window;
-            var pieces = (isInCurrentContext ? namespace.slice(5) : namespace).split('.');
+            var current = context;
+            var pieces = namespace.slice(5).split('.');
 
             for (var i in pieces) {
                 current = current[pieces[i]];
@@ -275,7 +353,6 @@
 
         delegatedEvents: true,
         parseEventVariables: true,
-        assignOptions: false,
 
         constructor: function(options) {
 
@@ -287,8 +364,8 @@
             }
 
             if (this.assignOptions) {
-                var defaults = typeof this.defaults === 'function' ? this.defaults() : this.defaults;
-                this.options = this.assignOptions === 'deep' ? $.extend(true, {}, defaults, options) : $.extend({}, defaults, options);
+                this.writeOptions.apply(this, arguments);
+                this.optionRules && this.validateOptions(this.options, this.optionRules);
             }
 
             this.beforeInitialize && this.beforeInitialize.apply(this, arguments);
@@ -415,54 +492,12 @@
         remove: function() {
 
             this.trigger('beforeRemove');
-            this.removeEvents().abortDeferreds().removeViews();
+            this.removeEvents().removeViews();
             this.$el && this.$el.remove();
             this.trigger('afterRemove');
             this.off().stopListening();
 
             return this;
-
-        },
-
-        addDeferred: function(deferred) {
-
-            this.deferreds = this.deferreds || [];
-
-            if (!Array.prototype.indexOf || this.deferreds.indexOf(deferred) < 0) {
-                this.deferreds.push(deferred);
-            }
-
-            return deferred;
-
-        },
-
-        abortDeferreds: function() {
-
-            this.deferreds && $.each(this.deferreds, function(i, deferred) {
-
-                if (typeof deferred === 'object' && deferred.state && deferred.state() === 'pending') {
-                    deferred.abort ? deferred.abort() : deferred.reject();
-                }
-
-            });
-
-            delete this.deferreds;
-
-            return this;
-
-        },
-
-        when: function(resources, callbackDone, callbackFail) {
-
-            var self = this;
-
-            $.each(resources = $.isArray(resources) ? resources : [resources], function(i, resource) {
-                self.addDeferred(resource);
-            });
-
-            return $.when.apply($, resources)
-                .done($.proxy(callbackDone, this))
-                .fail($.proxy(callbackFail, this));
 
         },
 
@@ -497,24 +532,6 @@
                 return self.addView(new View($.extend({$el: $(el)}, params)));
 
             }).get();
-
-        },
-
-        mapViewsAsync: function(selector, viewProvider, params) {
-
-            var self = this;
-            var deferred = $.Deferred();
-            var $elements = typeof selector === 'string' ? this.$(selector) : $(selector);
-
-            if ($elements.length) {
-                viewProvider(function(View) {
-                    deferred.resolve(self.mapViews($elements, View, params));
-                });
-            } else {
-                deferred.resolve([]);
-            }
-
-            return deferred;
 
         },
 

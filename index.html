@@ -269,6 +269,13 @@
 
         <hr class="attireSeparator mod1">
 
+        <h3 class="attireTitleType3">assignOptions(boolean)</h3>
+        <p class="attireTextType2">
+            If defined user passed options will be merged with defaults and written to viewInstance.options. False by default.
+        </p>
+
+        <hr class="attireSeparator mod1">
+
         <h3 class="attireTitleType3">defaults(object | function)</h3>
         <p class="attireTextType2">
             Define view default options with object hash or function return object.
@@ -276,10 +283,21 @@
 
         <hr class="attireSeparator mod1">
 
-        <h3 class="attireTitleType3">assignOptions(boolean | 'deep')</h3>
+        <h3 class="attireTitleType3">optionRules(object)</h3>
         <p class="attireTextType2">
-            If defined user passed options will be merged with defaults and written to viewInstance.options. False by default.
+            Options provided by view defaults and and constructor parameters can be type checked as defined
+            <a href="https://github.com/dbrekalo/type-factory#options-type-checking-and-validation">here</a>.
         </p>
+
+        <pre class="attireCodeHighlight"><code class="language-javascript">
+            optionRules: {
+                instrument: {type: 'string'},
+                age: {type: 'number', default: 18, rule: function(age) {
+                    return age >= 18;
+                }},
+                mentor: {instanceOf: Person}
+            }
+        </code></pre>
 
         <hr class="attireSeparator mod1">
 
@@ -343,14 +361,6 @@
 
         <hr class="attireSeparator mod1">
 
-        <h3 class="attireTitleType3">mapViewsAsync(selector, viewProvider, [params])</h3>
-        <p class="attireTextType2">
-            Map instances to all elements inside view found via selector with View constructor provided via viewProvider.
-            Returns Deferred object that resolves with mapped instances array.
-        </p>
-
-        <hr class="attireSeparator mod1">
-
         <h3 class="attireTitleType3">removeViews()</h3>
         <p class="attireTextType2">
             Removes all registered sub views.
@@ -361,14 +371,6 @@
         <h3 class="attireTitleType3">$(selector)</h3>
         <p class="attireTextType2">
             Alias for this.$el.find(selector);
-        </p>
-
-        <hr class="attireSeparator mod1">
-
-        <h3 class="attireTitleType3">when(resources, [callbackDone, [callbackFail]]) {</h3>
-        <p class="attireTextType2">
-            Similar to $.when. Resources can be array of deferreds or single deferred.
-            Callbacks are called with view instance as execution context.
         </p>
 
         <hr class="attireSeparator mod1">

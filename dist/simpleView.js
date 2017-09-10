@@ -12,14 +12,13 @@
 }(this, function(typeFactory, mitty, $) {
 
     var viewCounter = 0;
-    var variableInEventStringRE = /{{(\S+)}}/g;
+    var variableInEventStringRE = /{{\s*(\S+)\s*}}/g;
     var parseEventVariables = function(eventString, context) {
 
         return eventString.replace(variableInEventStringRE, function(match, namespace) {
 
-            var isInCurrentContext = namespace.indexOf('this.') === 0;
-            var current = isInCurrentContext ? context : window;
-            var pieces = (isInCurrentContext ? namespace.slice(5) : namespace).split('.');
+            var current = context;
+            var pieces = namespace.slice(5).split('.');
 
             for (var i in pieces) {
                 current = current[pieces[i]];
@@ -43,7 +42,6 @@
 
         delegatedEvents: true,
         parseEventVariables: true,
-        assignOptions: false,
 
         constructor: function(options) {
 
@@ -55,8 +53,8 @@
             }
 
             if (this.assignOptions) {
-                var defaults = typeof this.defaults === 'function' ? this.defaults() : this.defaults;
-                this.options = this.assignOptions === 'deep' ? $.extend(true, {}, defaults, options) : $.extend({}, defaults, options);
+                this.writeOptions.apply(this, arguments);
+                this.optionRules && this.validateOptions(this.options, this.optionRules);
             }
 
             this.beforeInitialize && this.beforeInitialize.apply(this, arguments);
@@ -183,54 +181,12 @@
         remove: function() {
 
             this.trigger('beforeRemove');
-            this.removeEvents().abortDeferreds().removeViews();
+            this.removeEvents().removeViews();
             this.$el && this.$el.remove();
             this.trigger('afterRemove');
             this.off().stopListening();
 
             return this;
-
-        },
-
-        addDeferred: function(deferred) {
-
-            this.deferreds = this.deferreds || [];
-
-            if (!Array.prototype.indexOf || this.deferreds.indexOf(deferred) < 0) {
-                this.deferreds.push(deferred);
-            }
-
-            return deferred;
-
-        },
-
-        abortDeferreds: function() {
-
-            this.deferreds && $.each(this.deferreds, function(i, deferred) {
-
-                if (typeof deferred === 'object' && deferred.state && deferred.state() === 'pending') {
-                    deferred.abort ? deferred.abort() : deferred.reject();
-                }
-
-            });
-
-            delete this.deferreds;
-
-            return this;
-
-        },
-
-        when: function(resources, callbackDone, callbackFail) {
-
-            var self = this;
-
-            $.each(resources = $.isArray(resources) ? resources : [resources], function(i, resource) {
-                self.addDeferred(resource);
-            });
-
-            return $.when.apply($, resources)
-                .done($.proxy(callbackDone, this))
-                .fail($.proxy(callbackFail, this));
 
         },
 
@@ -265,24 +221,6 @@
                 return self.addView(new View($.extend({$el: $(el)}, params)));
 
             }).get();
-
-        },
-
-        mapViewsAsync: function(selector, viewProvider, params) {
-
-            var self = this;
-            var deferred = $.Deferred();
-            var $elements = typeof selector === 'string' ? this.$(selector) : $(selector);
-
-            if ($elements.length) {
-                viewProvider(function(View) {
-                    deferred.resolve(self.mapViews($elements, View, params));
-                });
-            } else {
-                deferred.resolve([]);
-            }
-
-            return deferred;
 
         },
 

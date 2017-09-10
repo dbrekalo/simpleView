@@ -65,19 +65,18 @@ describe('SimpleView constructor', function() {
 
     });
 
-    it('assigns deep extended options', function() {
+    it('type check provided options', function() {
 
         var View = BaseView.extend({
-            assignOptions: 'deep',
-            defaults: {tree: {branch: {leaf1: true}}}
+            assignOptions: true,
+            optionRules: {
+                foo: {type: 'string'},
+            }
         });
 
-        var view = new View({
-            $el: $el,
-            tree: {branch: {leaf2: false}}
-        });
-
-        assert.deepEqual(view.options, {tree: {branch: {leaf1: true, leaf2: false}}});
+        assert.throws(function() {
+            new View({foo: 42});
+        }, 'Option "foo" is number, expected string.');
 
     });
 
@@ -219,52 +218,16 @@ describe('SimpleView events', function() {
 
     });
 
-    it('can be defined with injected global variables', function(done) {
-
-        window.formSelector = 'form';
-
-        var View = BaseView.extend({
-            events: {
-                'submit {{formSelector}}': function(e) {
-                    e.preventDefault();
-                    this.formIsSubmited = true;
-                }
-            }
-        });
-
-        var view = new View({$el: $el});
-
-        $el.find('form').trigger('submit');
-
-        window.formSelector = undefined;
-
-        setTimeout(function() {
-            assert.isTrue(view.formIsSubmited);
-            done();
-        }, 100);
-
-    });
-
     it('throws error when injected variable is not defined', function() {
 
-        var View1 = BaseView.extend({
-            events: {
-                'submit {{formSelector}}': function() {}
-            }
-        });
-
-        var View2 = BaseView.extend({
+        var View = BaseView.extend({
             events: {
                 'submit {{this.formSelector}}': function() {}
             }
         });
 
         assert.throws(function() {
-            new View1({$el: $el});
-        });
-
-        assert.throws(function() {
-            new View2({$el: $el});
+            new View({$el: $el});
         });
 
     });
@@ -466,84 +429,6 @@ describe('SimpleView utilities', function() {
 
     });
 
-    it('provides addDeferred method for registering deferreds', function() {
-
-        var view = new BaseView({$el: $el});
-        var deferred = $.Deferred();
-        var returnValue = view.addDeferred(deferred);
-
-        assert.equal(view.deferreds.length, 1);
-        assert.strictEqual(returnValue, deferred);
-
-    });
-
-    it('provides abortDeferreds method for canceling all pending deferreds', function() {
-
-        var view = new BaseView({$el: $el});
-        var deferred = $.Deferred();
-        var anotherDeferred = $.Deferred();
-
-        anotherDeferred.abort = function() {};
-
-        view.when([deferred, anotherDeferred, true, 5, {}], function() {
-            this.deferredsDone = true;
-        });
-
-        view.abortDeferreds();
-
-        deferred.resolve();
-
-        assert.isUndefined(view.deferredsDone);
-
-    });
-
-    describe('provides when method as $.when syntax sugar', function() {
-
-        it('accepts single deferred and done callback', function(done) {
-
-            var view = new BaseView({$el: $el});
-            var deferred = $.Deferred();
-
-            var returnValue = view.when(deferred, function() {
-                assert.strictEqual(this, view);
-                done();
-            });
-
-            assert.isFunction(returnValue.done);
-            deferred.resolve();
-
-        });
-
-        it('accepts array of deferreds and done callback', function(done) {
-
-            var view = new BaseView({$el: $el});
-            var deferred = $.Deferred();
-
-            view.when([deferred, true, 5, {}], function() {
-                assert.strictEqual(this, view);
-                done();
-            });
-
-            deferred.resolve();
-
-        });
-
-        it('accepts single deferred and fail callback', function(done) {
-
-            var view = new BaseView({$el: $el});
-            var deferred = $.Deferred();
-
-            view.when(deferred, undefined, function() {
-                assert.strictEqual(this, view);
-                done();
-            });
-
-            deferred.reject();
-
-        });
-
-    });
-
 });
 
 describe('SimpleView subviews', function() {
@@ -621,35 +506,6 @@ describe('SimpleView subviews', function() {
         assert.deepEqual(childViews[0].options, childOptions);
         assert.strictEqual(childViews[0], parentView.views[childViews[0].cid]);
         assert.lengthOf(undefinedChildViews, 0);
-
-    });
-
-    it('maps multiple views with async view provider', function(done) {
-
-        var ParentView = BaseView.extend({});
-        var ChildView = BaseView.extend({
-            initialize: function(options) {
-                this.options = options;
-            }
-        });
-
-        var parentView = new ParentView({$el: $el});
-
-        var firstDeferred = parentView.mapViewsAsync('form', function(viewProvider) {
-            viewProvider(ChildView);
-        }).done(function(childViews) {
-            assert.strictEqual(childViews[0], parentView.views[childViews[0].cid]);
-        });
-
-        var secondDeferred = parentView.mapViewsAsync($('.undefinedClass'), function(viewProvider) {
-            viewProvider(ChildView);
-        }).done(function(childViews) {
-            assert.lengthOf(childViews, 0);
-        });
-
-        $.when(firstDeferred, secondDeferred).done(function() {
-            done();
-        });
 
     });
 
