@@ -48,6 +48,6 @@
   "dependencies": {
     "jquery": ">=1.11",
     "mitty": "^1.0.0",
-    "type-factory": "^1.1.1"
+    "type-factory": "^2.0.1"
   }
 }

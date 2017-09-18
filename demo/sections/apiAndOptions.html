@@ -42,11 +42,12 @@
 
         <pre class="attireCodeHighlight"><code class="language-javascript">
             optionRules: {
-                instrument: {type: 'string'},
-                age: {type: 'number', default: 18, rule: function(age) {
+                instrument: String,
+                age: {type: Number, default: 18, validator: function(age) {
                     return age >= 18;
                 }},
-                mentor: {instanceOf: Person}
+                mentor: {type: Person, required: false}
+                url: [String, Function]
             }
         </code></pre>
 

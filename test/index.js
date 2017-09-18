@@ -70,13 +70,13 @@ describe('SimpleView constructor', function() {
         var View = BaseView.extend({
             assignOptions: true,
             optionRules: {
-                foo: {type: 'string'},
+                foo: String,
             }
         });
 
         assert.throws(function() {
             new View({foo: 42});
-        }, 'Option "foo" is number, expected string.');
+        });
 
     });
 
